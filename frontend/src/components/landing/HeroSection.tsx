@@ -23,6 +23,12 @@ export function HeroSection({ onOpenTrialModal }: HeroSectionProps) {
   const yParallaxTransform = useTransform(scrollYProgress, [0, 1], [0, 60]);
   const yParallax = shouldReduceMotion ? 0 : yParallaxTransform;
 
+  // Dynamic parallax and scale for the background image
+  const bgScaleTransform = useTransform(scrollYProgress, [0, 1], [1.02, 1.1]);
+  const bgYTransform = useTransform(scrollYProgress, [0, 1], ['0%', '10%']);
+  const bgScale = shouldReduceMotion ? 1 : bgScaleTransform;
+  const bgY = shouldReduceMotion ? 0 : bgYTransform;
+
   const containerVariants: Variants = {
     hidden: { opacity: 0 },
     visible: {
@@ -48,15 +54,30 @@ export function HeroSection({ onOpenTrialModal }: HeroSectionProps) {
       ref={containerRef}
       className="relative overflow-hidden bg-cream-100 pt-12 sm:pt-16 lg:pt-24 pb-20 sm:pb-24 lg:pb-32 border-b border-stone-200/60"
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* Dynamic Realistic Background Image Layer */}
+      <motion.div
+        className="absolute inset-0 pointer-events-none z-0 overflow-hidden"
+        style={{ y: bgY, scale: bgScale }}
+      >
+        <img
+          src="/storage-bg.jpg"
+          alt="RentallQ Self Storage Operations Facility"
+          className="w-full h-full object-cover object-center select-none filter brightness-[0.80] contrast-[1.14] saturate-[1.05]"
+        />
+        {/* Subtle Dark Ambient Tint to make the image slightly darker and clearer */}
+        <div className="absolute inset-0 bg-navy-950/20" />
+        <div className="absolute inset-0 bg-gradient-to-t from-cream-100/60 via-transparent to-black/25" />
+      </motion.div>
+
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-[1.15fr_0.85fr] gap-12 lg:gap-10 items-start">
           
-          {/* Left Column — Staggered Fade-Up Text */}
+          {/* Left Column — Staggered Fade-Up Text with Frosted Glass Backdrop for crisp readability */}
           <motion.div
             variants={containerVariants}
             initial="hidden"
             animate="visible"
-            className="space-y-6 text-left"
+            className="space-y-6 text-left bg-cream-50/85 backdrop-blur-md p-6 sm:p-8 rounded-3xl border border-stone-200/70 shadow-xl shadow-navy-950/10"
           >
             <motion.p variants={itemVariants} className="text-xs font-bold uppercase tracking-[0.25em] text-amber-600">
               SMART RENTAL OPERATIONS &amp; DECISION INTELLIGENCE

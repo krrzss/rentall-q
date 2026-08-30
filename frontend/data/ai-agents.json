@@ -1,0 +1,117 @@
+[
+  {
+    "id": "agent-dynamic-pricing",
+    "name": "Yield & Dynamic Pricing Sentinel",
+    "codename": "PRICE-SENTINEL-v3",
+    "badge": "Revenue Optimization",
+    "icon": "TrendingUp",
+    "accentColor": "amber",
+    "tagline": "Autonomous price elasticity modeling and competitor inventory scraping.",
+    "shortDescription": "Calculates optimal per-unit rates daily based on regional demand surges, vacancy velocity, seasonal patterns, and competitor pricing.",
+    "capabilities": [
+      "Continuous regional competitor inventory & rate crawling",
+      "Dynamic surge premiums for high-occupancy categories (>90%)",
+      "Automated discount pacing for aged vacant units",
+      "Multi-channel rate distribution (Website, Aggregators, Direct)"
+    ],
+    "metrics": {
+      "avgRoi": "+22.4% NOI Increase",
+      "decisionSpeed": "< 240ms Execution",
+      "confidenceScore": "99.2% Accuracy"
+    },
+    "simulationPrompt": "Unit Type: 10x15 Climate Controlled Storage. Current Occupancy: 94%. Local Competitor Radius: 3 miles (All Sold Out). Target: Maximize Revenue while preserving 92% floor.",
+    "simulationResult": "Recommendation: Elevate baseline daily rental rate from $145/mo to $168/mo (+15.8%). Expected booking probability: 88.4%. Projected extra monthly yield: +$4,600 across remaining tier units."
+  },
+  {
+    "id": "agent-occupancy-forecast",
+    "name": "Predictive Occupancy & Churn Forecaster",
+    "codename": "OCCUPANCY-ORACLE-v2",
+    "badge": "Demand Intelligence",
+    "icon": "LineChart",
+    "accentColor": "blue",
+    "tagline": "Forecasts vacancies 30 to 90 days out with customer churn risk flags.",
+    "shortDescription": "Analyzes payment delays, tenant portal logins, seasonality, and lease expirations to flag early risk of non-renewal.",
+    "capabilities": [
+      "Early warning churn scoring for corporate & retail tenants",
+      "30/60/90-day probabilistic occupancy trajectory graph",
+      "Automated proactive lease renewal incentives sent via WhatsApp",
+      "Regional demographic and relocation trend ingestion"
+    ],
+    "metrics": {
+      "avgRoi": "-48% Tenant Churn",
+      "decisionSpeed": "Daily Batch Analysis",
+      "confidenceScore": "96.7% Precision"
+    },
+    "simulationPrompt": "Tenant: Logistics Partner Corp. Lease Expiry: 45 Days. Payment Behavior: 12-day delay on last 2 invoices. Portal Activity: Zero logins in 30 days.",
+    "simulationResult": "Churn Probability: 78.5% (High Risk). Trigger: Auto-dispatch account manager retention alert with custom 12-month extension discount incentive."
+  },
+  {
+    "id": "agent-maintenance-dispatcher",
+    "name": "IoT Telematics & Predictive Maintenance Bot",
+    "codename": "DISPATCH-COPILOT-v4",
+    "badge": "Asset Health",
+    "icon": "Wrench",
+    "accentColor": "emerald",
+    "tagline": "Hardware telemetry ingestion and auto-dispatch to contractor networks.",
+    "shortDescription": "Ingests smart lock battery telemetry, HVAC climate logs, and heavy machinery engine hours to prevent failure before it happens.",
+    "capabilities": [
+      "CAN-bus & IoT sensor real-time telemetry stream parsing",
+      "Automated work order creation with priority classification",
+      "Vendor SLA tracking and digital job sign-off verification",
+      "Predictive component failure alerts before breakdown"
+    ],
+    "metrics": {
+      "avgRoi": "-42% Emergency Repairs",
+      "decisionSpeed": "Sub-second IoT triggers",
+      "confidenceScore": "98.1% Diagnostic Score"
+    },
+    "simulationPrompt": "Telemetry Alert: Scissor Lift #SL-402 recorded 260 operating hours. Hydraulic pressure sensor jitter detected at 15% deviation above normal operating threshold.",
+    "simulationResult": "Action: Unit reservation locked on calendar. P1 Work Order dispatched to Certified Field Technician. Preventive seal replacement scheduled before site dispatch."
+  },
+  {
+    "id": "agent-smart-concierge",
+    "name": "Multilingual AI Renter Concierge & Booking Agent",
+    "codename": "CONCIERGE-AI-v2",
+    "badge": "24/7 Support",
+    "icon": "Bot",
+    "accentColor": "purple",
+    "tagline": "Automates self-service tours, lease queries, gate access, and bill disputes.",
+    "shortDescription": "Acts as a virtual facility manager answering customer questions on WhatsApp, Web, and SMS 24/7 with zero human intervention required.",
+    "capabilities": [
+      "Natural conversational booking and digital KYC guidance",
+      "Instant gate code & PIN troubleshooting assistance",
+      "Payment method updates and receipt re-issuance",
+      "Multi-language translation in 32+ global languages"
+    ],
+    "metrics": {
+      "avgRoi": "70% Calls Deflected",
+      "decisionSpeed": "Instant (1.2s avg)",
+      "confidenceScore": "99.5% Resolution"
+    },
+    "simulationPrompt": "Customer Message (WhatsApp): 'Hi, I'm standing outside Unit #204 at Apex Storage and forgot my keypad code. My phone number is 512-555-0192.'",
+    "simulationResult": "Verification: Tenant verified via two-factor OTP. Response: 'Hello Sarah, your one-time entry PIN is #8492. Gate lock unlocked for the next 15 minutes.'"
+  },
+  {
+    "id": "agent-payment-risk",
+    "name": "Payment Risk & Smart Dunning Sentinel",
+    "codename": "RISK-SENTINEL-v1",
+    "badge": "Cashflow Protection",
+    "icon": "ShieldAlert",
+    "accentColor": "rose",
+    "tagline": "Predicts default risk and triggers intelligent dynamic recovery sequences.",
+    "shortDescription": "Calculates payment failure probabilities and initiates personalized payment schedules, automated grace periods, or partial payment recovery.",
+    "capabilities": [
+      "Pre-due-date risk scoring based on bank debit indicators",
+      "Intelligent dunning sequence timing (SMS, WhatsApp, Email)",
+      "Automated overlock / gate restriction rule enforcement",
+      "Settlement & payment plan generator for overdue balances"
+    ],
+    "metrics": {
+      "avgRoi": "+84% Recovery Rate",
+      "decisionSpeed": "Real-time Gateway Sync",
+      "confidenceScore": "97.4% Recovery Predictor"
+    },
+    "simulationPrompt": "Account Balance: $320 Overdue (10 days). Card Decline Code: Insufficient Funds. Past history: 6 on-time payments, 1 late payment.",
+    "simulationResult": "Action: Trigger Stage 2 Gentle Recovery Sequence. Send WhatsApp link offering two-split installment plan. Lock gate access only if unaddressed after Day 14."
+  }
+]

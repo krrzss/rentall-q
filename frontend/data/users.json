@@ -1,0 +1,42 @@
+[
+  {
+    "id": "usr_demo_owner",
+    "name": "Sarah Sterling",
+    "email": "owner@rentallq.com",
+    "password": "password123",
+    "role": "BUSINESS_OWNER",
+    "companyName": "Apex SafeStore & Multi-Fleet",
+    "plan": "Growth",
+    "avatar": "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=160&q=80"
+  },
+  {
+    "id": "usr_demo_manager",
+    "name": "Jordan Miller",
+    "email": "manager@rentallq.com",
+    "password": "password123",
+    "role": "MANAGER",
+    "companyName": "MetroHub Micro-Warehousing",
+    "plan": "Enterprise",
+    "avatar": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=160&q=80"
+  },
+  {
+    "id": "usr_demo_client",
+    "name": "Alex Chen",
+    "email": "client@rentallq.com",
+    "password": "password123",
+    "role": "CLIENT",
+    "companyName": "Pacific Logistics LLC",
+    "plan": "Starter",
+    "avatar": "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=160&q=80"
+  },
+  {
+    "id": "usr_demo_admin",
+    "name": "David Thorne",
+    "email": "admin@rentallq.com",
+    "password": "password123",
+    "role": "ADMIN",
+    "companyName": "RentallQ HQ Global",
+    "plan": "Enterprise",
+    "avatar": "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=160&q=80"
+  }
+]

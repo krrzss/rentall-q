@@ -1,0 +1,95 @@
+{
+  "tiers": [
+    {
+      "id": "starter",
+      "name": "Starter",
+      "slug": "starter",
+      "description": "Essential rental management for emerging operators and boutique facilities.",
+      "monthlyPrice": 49,
+      "yearlyPrice": 39,
+      "unitLimit": "Up to 50 active rental units",
+      "badge": "Best for Small Fleets",
+      "popular": false,
+      "ctaText": "Start with Starter",
+      "features": [
+        "Up to 50 active rental units",
+        "Visual unit inventory & availability calendar",
+        "Online customer booking & Stripe payments",
+        "Automated digital invoice & receipt emails",
+        "Standard email support (24h SLA)",
+        "Mobile-friendly tenant portal"
+      ],
+      "limitations": [
+        "No AI predictive yield optimization",
+        "Single location / facility only",
+        "No custom hardware IoT gate webhooks"
+      ]
+    },
+    {
+      "id": "growth",
+      "name": "Growth",
+      "slug": "growth",
+      "description": "Advanced automation and AI agents for multi-unit operators scaling revenue.",
+      "monthlyPrice": 129,
+      "yearlyPrice": 99,
+      "unitLimit": "Up to 500 active rental units",
+      "badge": "Most Popular",
+      "popular": true,
+      "ctaText": "Start 14-Day Free Trial",
+      "features": [
+        "Up to 500 active rental units",
+        "All Starter features included",
+        "AI Dynamic Pricing & Yield Optimizer",
+        "WhatsApp & SMS automated dunning & notifications",
+        "Smart Lock & IoT Access Gate integrations",
+        "Multi-facility & multi-currency support",
+        "Custom branding & white-label tenant portal",
+        "Priority live chat & phone support"
+      ],
+      "limitations": [
+        "Dedicated account manager not included"
+      ]
+    },
+    {
+      "id": "enterprise",
+      "name": "Enterprise",
+      "slug": "enterprise",
+      "description": "Custom workflows, unlimited units, dedicated infrastructure, and bespoke SLA.",
+      "monthlyPrice": 349,
+      "yearlyPrice": 279,
+      "unitLimit": "Unlimited units & locations",
+      "badge": "For High Volume",
+      "popular": false,
+      "ctaText": "Contact Sales / Enterprise",
+      "features": [
+        "Unlimited active rental units & locations",
+        "All Growth features included",
+        "Full Python AI microservice agent custom rules",
+        "Direct ERP, WMS, & QuickBooks API sync",
+        "Custom hardware gate & biometric scanner adapters",
+        "Dedicated Success Manager & 99.99% uptime SLA",
+        "Custom legal contract & e-signature templates",
+        "SOC2 Type II compliance & audit logs export"
+      ],
+      "limitations": []
+    }
+  ],
+  "faq": [
+    {
+      "question": "Can I upgrade or downgrade my subscription plan anytime?",
+      "answer": "Yes. You can switch between plans at any time from your billing settings. Upgrades take effect immediately with prorated billing, and downgrades apply at the end of the current billing cycle."
+    },
+    {
+      "question": "Is there a free trial available?",
+      "answer": "Yes! We offer a full 14-day free trial on the Growth and Starter plans with no credit card required upfront."
+    },
+    {
+      "question": "How does RentallQ connect to physical smart locks and gate hardware?",
+      "answer": "RentallQ features native API adapters for leading access control hardware including PTI Security, Nuki, Salto, Kisi, and custom MQTT/webhook relays."
+    },
+    {
+      "question": "What payment gateways are supported for customer billing?",
+      "answer": "We support Stripe, Razorpay, direct ACH/SEPA debit transfers, credit/debit cards, and manual bank transfer reconciliation."
+    }
+  ]
+}

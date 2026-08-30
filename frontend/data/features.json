@@ -1,0 +1,98 @@
+[
+  {
+    "id": "smart-inventory",
+    "category": "Operations",
+    "icon": "LayoutGrid",
+    "title": "Universal Unit & Inventory Engine",
+    "description": "Visual unit mapping, dynamic availability grids, and flexible categorization for lockers, rooms, bays, and toolkits.",
+    "badge": "Core Platform",
+    "detailedOverview": "Manage any physical rental asset effortlessly. Whether you are dividing a 50,000 sq ft warehouse into sub-bays, tracking individual beds in a co-living property, or renting out construction excavators, our universal schema models units with customized attributes, rates, and occupancy timelines.",
+    "keyBenefits": [
+      "Visual interactive 2D floor plans and layout maps",
+      "Instant state transitions (Available, Reserved, Rented, Maintenance)",
+      "Bulk price adjustments and multi-unit batch operations",
+      "Custom spec filters (dimensions, power, climate control, weight capacity)"
+    ],
+    "stats": "Cuts unit onboarding and inventory audit time by 65%"
+  },
+  {
+    "id": "automated-billing",
+    "category": "Billing & Payments",
+    "icon": "CreditCard",
+    "title": "Recurring Invoicing & Multi-Gateway Billing",
+    "description": "Seamless auto-pay, prorated billing, automated security deposit holding, and unified tax calculation.",
+    "badge": "Financials",
+    "detailedOverview": "Eliminate manual payment chasing with automated recurring charge runs, SMS/WhatsApp invoice delivery, and smart retry schedules for failed cards. Integrates with Stripe, Razorpay, and direct ACH bank transfers.",
+    "keyBenefits": [
+      "Automated prorated invoices for mid-month move-ins/outs",
+      "Smart dunning workflows with WhatsApp and SMS reminders",
+      "Security deposit escrow handling with digital damage deduction",
+      "One-click export to QuickBooks, Xero, and CSV reports"
+    ],
+    "stats": "Reduces late payments and overdue balances by 84%"
+  },
+  {
+    "id": "dynamic-pricing",
+    "category": "AI Automation",
+    "icon": "TrendingUp",
+    "title": "AI Dynamic Pricing & Yield Optimizer",
+    "description": "Autonomous price elasticity models that continuously calibrate rates based on seasonality, occupancy, and local competition.",
+    "badge": "AI Powered",
+    "detailedOverview": "Never leave money on the table. Our machine learning agents analyze historical booking curves, regional competitors, and current demand velocity to suggest and optionally auto-adjust rental rates in real-time.",
+    "keyBenefits": [
+      "Automated surge pricing during peak leasing windows",
+      "Promotional discount pacing for low-velocity inventory units",
+      "Competitor price tracking and regional market index matching",
+      "What-If simulator to forecast revenue prior to rate adjustments"
+    ],
+    "stats": "+18.4% average annual net operating income increase"
+  },
+  {
+    "id": "smart-access",
+    "category": "Operations",
+    "icon": "KeyRound",
+    "title": "IoT Smart Locks & Keyless Access",
+    "description": "Direct hardware integration with smart locks, Bluetooth gates, ANPR barrier cameras, and QR turnstiles.",
+    "badge": "Hardware Sync",
+    "detailedOverview": "Deliver a frictionless self-service move-in experience. Once an agreement is digitally signed and payment verified, RentallQ automatically provisions a time-bounded PIN, Bluetooth token, or license plate permit.",
+    "keyBenefits": [
+      "Instant lock release upon verified payment and KYC approval",
+      "Automatic access revocation upon lease expiration or overdue balance",
+      "Full audit trail of entry/exit timestamps with camera snapshot sync",
+      "Works with major access systems: Kisi, PTI Security, Salto, Nuki, PDK"
+    ],
+    "stats": "Enables 100% contactless 24/7 unstaffed customer check-in"
+  },
+  {
+    "id": "predictive-maintenance",
+    "category": "AI Automation",
+    "icon": "Wrench",
+    "title": "Predictive Maintenance & Asset Health",
+    "description": "IoT sensor telemetry, machinery hour monitoring, and preventative maintenance ticketing.",
+    "badge": "AI Powered",
+    "detailedOverview": "Prevent costly downtime before equipment fails. Telemetry ingestion triggers automated work orders when engine hours hit service intervals or when HVAC sensors detect anomalous temperature spikes in climate units.",
+    "keyBenefits": [
+      "Automated maintenance dispatch to on-call vendor contractors",
+      "Engine telemetry, battery level, and vibration monitoring",
+      "Tenant photo-upload repair requests with AI severity triage",
+      "Maintenance expense tracking against unit profitability"
+    ],
+    "stats": "Decreases emergency repairs by 42% and extends asset life"
+  },
+  {
+    "id": "tenant-portal",
+    "category": "Customer Experience",
+    "icon": "Users",
+    "title": "White-Label Customer & Tenant Portal",
+    "description": "Self-service customer portal for booking, digital lease signing, bill pay, and support ticket management.",
+    "badge": "Self Service",
+    "detailedOverview": "Empower your renters with a branded mobile-responsive portal. Customers can view invoices, change payment methods, unlock gates, extend leases, and request unit upgrades in seconds.",
+    "keyBenefits": [
+      "Legally-binding e-signature lease execution built-in",
+      "One-click lease renewals, extensions, and automated check-outs",
+      "Custom domain & company branding customization",
+      "Multi-language support for international guests & contractors"
+    ],
+    "stats": "Eliminates 70% of inbound customer service calls"
+  }
+]

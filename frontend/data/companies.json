@@ -1,0 +1,242 @@
+[
+  {
+    "slug": "apex-self-storage",
+    "name": "Apex SafeStore Solutions",
+    "category": "Self Storage",
+    "categorySlug": "self-storage",
+    "description": "Premium climate-controlled self-storage facilities with 24/7 biometric access and automated unit leasing.",
+    "status": "Active",
+    "metric": "480 Units",
+    "unitsCount": 480,
+    "occupancy": "94%",
+    "location": "Austin, TX",
+    "address": "4200 South Congress Ave, Austin, TX 78745",
+    "contactEmail": "ops@apexstore.com",
+    "contactPhone": "+1 (512) 555-0192",
+    "planTier": "Growth",
+    "founded": "2019",
+    "icon": "Warehouse",
+    "bannerImage": "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=1200&q=80",
+    "features": [
+      "24/7 Smart Keyless Entry",
+      "Climate Controlled 5x5 to 10x30",
+      "Automated WhatsApp Lease Reminders",
+      "Real-time CCTV & Unit Monitoring"
+    ],
+    "highlights": {
+      "avgMonthlyRevenue": "$52,400",
+      "activeTenants": 451,
+      "aiAgentActive": "Dynamic Pricing & Churn Sentinel"
+    }
+  },
+  {
+    "slug": "metro-hub-logistics",
+    "name": "MetroHub Micro-Warehousing",
+    "category": "Warehouse",
+    "categorySlug": "warehouse",
+    "description": "Multi-tenant urban fulfillment and pallet storage center optimizing last-mile e-commerce distribution.",
+    "status": "Active",
+    "metric": "145,000 sq.ft",
+    "unitsCount": 64,
+    "occupancy": "98%",
+    "location": "Chicago, IL",
+    "address": "1200 W Fulton Market, Chicago, IL 60607",
+    "contactEmail": "leasing@metrohublogistics.com",
+    "contactPhone": "+1 (312) 555-0144",
+    "planTier": "Enterprise",
+    "founded": "2020",
+    "icon": "Boxes",
+    "bannerImage": "https://images.unsplash.com/photo-1553413077-190dd305871c?auto=format&fit=crop&w=1200&q=80",
+    "features": [
+      "Pallet & Cross-dock Space Allocation",
+      "Automated Forklift Fleet Booking",
+      "Direct ERP & WMS Webhook Sync",
+      "IoT Temperature & Humidity Telemetry"
+    ],
+    "highlights": {
+      "avgMonthlyRevenue": "$184,000",
+      "activeTenants": 58,
+      "aiAgentActive": "Occupancy Forecasting & Pallet Optimizer"
+    }
+  },
+  {
+    "slug": "urban-nest-co-living",
+    "name": "UrbanNest Co-Living & Hostels",
+    "category": "Hostel",
+    "categorySlug": "hostel",
+    "description": "Modern boutique hostel and student community living network with automated digital room locks and bed allocation.",
+    "status": "Active",
+    "metric": "320 Beds",
+    "unitsCount": 320,
+    "occupancy": "91%",
+    "location": "Seattle, WA",
+    "address": "780 Pike St, Seattle, WA 98101",
+    "contactEmail": "stay@urbannestcoliving.com",
+    "contactPhone": "+1 (206) 555-0188",
+    "planTier": "Growth",
+    "founded": "2021",
+    "icon": "Building",
+    "bannerImage": "https://images.unsplash.com/photo-1555854877-bab0e564b8d5?auto=format&fit=crop&w=1200&q=80",
+    "features": [
+      "Automated Guest Check-in QR Codes",
+      "Utility Bill Splitting & Billing",
+      "Community Event Scheduling",
+      "Multilingual Guest AI Concierge"
+    ],
+    "highlights": {
+      "avgMonthlyRevenue": "$78,500",
+      "activeTenants": 292,
+      "aiAgentActive": "AI Concierge & Maintenance Dispatcher"
+    }
+  },
+  {
+    "slug": "prime-spot-parking",
+    "name": "PrimeSpot Fleet & Airport Parking",
+    "category": "Parking",
+    "categorySlug": "parking",
+    "description": "Automated license-plate recognition (ALPR) parking lots for airport shuttles, long-term EVs, and delivery fleets.",
+    "status": "Active",
+    "metric": "850 Bays",
+    "unitsCount": 850,
+    "occupancy": "88%",
+    "location": "Denver, CO",
+    "address": "8400 Peña Blvd, Denver, CO 80249",
+    "contactEmail": "ops@primespotparking.com",
+    "contactPhone": "+1 (303) 555-0129",
+    "planTier": "Growth",
+    "founded": "2018",
+    "icon": "Car",
+    "bannerImage": "https://images.unsplash.com/photo-1506521781263-d8422e82f27a?auto=format&fit=crop&w=1200&q=80",
+    "features": [
+      "Automatic Number Plate Recognition (ANPR)",
+      "Dynamic Hourly & Monthly Subscriptions",
+      "EV Fast Charging Integrated Metering",
+      "Instant Barrier Gate API Integrations"
+    ],
+    "highlights": {
+      "avgMonthlyRevenue": "$96,200",
+      "activeTenants": 748,
+      "aiAgentActive": "Dynamic Surge Pricing Agent"
+    }
+  },
+  {
+    "slug": "titan-heavy-machinery",
+    "name": "Titan Equipment & Heavy Tool Rentals",
+    "category": "Equipment",
+    "categorySlug": "equipment",
+    "description": "Commercial construction gear, excavators, scissor lifts, and industrial generator fleet management.",
+    "status": "Active",
+    "metric": "195 Machines",
+    "unitsCount": 195,
+    "occupancy": "82%",
+    "location": "Dallas, TX",
+    "address": "1540 Regal Row, Dallas, TX 75247",
+    "contactEmail": "fleet@titanheavyrentals.com",
+    "contactPhone": "+1 (214) 555-0177",
+    "planTier": "Enterprise",
+    "founded": "2017",
+    "icon": "Wrench",
+    "bannerImage": "https://images.unsplash.com/photo-1581094794329-c8112a89af12?auto=format&fit=crop&w=1200&q=80",
+    "features": [
+      "GPS Telematics & Engine Run-Hours Tracking",
+      "Digital Security Deposits & Insurance Verification",
+      "Automated Maintenance Inspection Checklists",
+      "Contractor Job-Site Delivery Dispatch"
+    ],
+    "highlights": {
+      "avgMonthlyRevenue": "$142,000",
+      "activeTenants": 160,
+      "aiAgentActive": "Predictive Maintenance & Telematics Sentinel"
+    }
+  },
+  {
+    "slug": "guardian-vault-storage",
+    "name": "Guardian Vault & Wine Lockers",
+    "category": "Self Storage",
+    "categorySlug": "self-storage",
+    "description": "High-security luxury wine, art, and document vault storage with biometric scan authentication and microclimate sensors.",
+    "status": "Active",
+    "metric": "310 Lockers",
+    "unitsCount": 310,
+    "occupancy": "96%",
+    "location": "San Francisco, CA",
+    "address": "450 Mission St, San Francisco, CA 94105",
+    "contactEmail": "concierge@guardianvaults.com",
+    "contactPhone": "+1 (415) 555-0112",
+    "planTier": "Enterprise",
+    "founded": "2022",
+    "icon": "ShieldCheck",
+    "bannerImage": "https://images.unsplash.com/photo-1563245372-f21724e3856d?auto=format&fit=crop&w=1200&q=80",
+    "features": [
+      "Dual Biometric & NFC Keycard Verification",
+      "Precision Temperature & Humidity Logs",
+      "White-Glove Courier Pickup & Delivery",
+      "Underwriter Insurance Compliance Sync"
+    ],
+    "highlights": {
+      "avgMonthlyRevenue": "$89,000",
+      "activeTenants": 298,
+      "aiAgentActive": "Payment Risk & VIP Retention Agent"
+    }
+  },
+  {
+    "slug": "bayview-dock-storage",
+    "name": "Bayview Marine & Boat Slips",
+    "category": "Parking",
+    "categorySlug": "parking",
+    "description": "Marina slip rentals, dry-stack boat storage, and jet ski dock leasing with tidal forecast booking.",
+    "status": "Active",
+    "metric": "140 Slips",
+    "unitsCount": 140,
+    "occupancy": "90%",
+    "location": "Miami, FL",
+    "address": "2900 Biscayne Blvd, Miami, FL 33137",
+    "contactEmail": "harbor@bayviewmarina.com",
+    "contactPhone": "+1 (305) 555-0163",
+    "planTier": "Growth",
+    "founded": "2020",
+    "icon": "Anchor",
+    "bannerImage": "https://images.unsplash.com/photo-1569263979104-865ab7cd8d17?auto=format&fit=crop&w=1200&q=80",
+    "features": [
+      "Seasonal Wet/Dry Slip Switching",
+      "Shore Power Metering Automated Billing",
+      "Harbor Master Digital Logbook",
+      "Storm Warning & Tenant SMS Alerts"
+    ],
+    "highlights": {
+      "avgMonthlyRevenue": "$67,000",
+      "activeTenants": 126,
+      "aiAgentActive": "Seasonal Pricing & Weather Alert Agent"
+    }
+  },
+  {
+    "slug": "sound-stage-gear",
+    "name": "SoundStage Cine & Audio Rentals",
+    "category": "Equipment",
+    "categorySlug": "equipment",
+    "description": "Hollywood-grade cinema cameras, lighting kits, grip trucks, and podcast studio equipment rentals.",
+    "status": "Inactive",
+    "metric": "420 Kits",
+    "unitsCount": 420,
+    "occupancy": "65%",
+    "location": "Los Angeles, CA",
+    "address": "6200 Sunset Blvd, Los Angeles, CA 90028",
+    "contactEmail": "rentals@soundstagegear.com",
+    "contactPhone": "+1 (323) 555-0199",
+    "planTier": "Starter",
+    "founded": "2023",
+    "icon": "Camera",
+    "bannerImage": "https://images.unsplash.com/photo-1518173946687-a4c8a383392e?auto=format&fit=crop&w=1200&q=80",
+    "features": [
+      "Serial Number & Barcode Scan Dispatch",
+      "Damage Deposit Pre-Authorization",
+      "Crew Scheduling & Package Deals",
+      "Instant Certificate of Insurance (COI) Upload"
+    ],
+    "highlights": {
+      "avgMonthlyRevenue": "$41,000",
+      "activeTenants": 78,
+      "aiAgentActive": "Turnaround Inspector Agent"
+    }
+  }
+]
