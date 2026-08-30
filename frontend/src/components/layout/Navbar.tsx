@@ -73,9 +73,13 @@ export function Navbar() {
 
   const handleSignOut = async () => {
     const supabase = createClient();
-    document.cookie = 'rentallq_demo_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT;';
-    await supabase.auth.signOut();
-    window.location.href = '/business/login';
+    document.cookie = 'rentallq_demo_session=; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT;';
+    try {
+      await supabase.auth.signOut();
+    } catch (err) {
+      console.warn('Sign out error', err);
+    }
+    window.location.href = '/login';
   };
 
   const getInitials = (name: string) => {

@@ -16,12 +16,13 @@ import {
   KeyRound,
   UserCheck,
   Zap,
+  Shield,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/server/lib/supabaseClient';
 
-type RoleType = 'BUSINESS_OWNER' | 'MANAGER' | 'STAFF';
+type RoleType = 'BUSINESS_OWNER' | 'CLIENT' | 'ADMIN' | 'MANAGER' | 'STAFF';
 type ScreenType = 'role-select' | 'login' | 'signup' | 'forgot-password';
 
 interface RoleOption {
@@ -39,32 +40,32 @@ const roles: RoleOption[] = [
   {
     id: 'BUSINESS_OWNER',
     title: 'Business Owner',
-    badge: 'Full Access + AI',
+    badge: 'Storage & Operations',
     icon: Crown,
     color: 'text-amber-600 border-amber-300 bg-amber-50',
     accentBg: 'bg-amber-500',
-    description: 'Monitor overall business performance, revenue metrics, and receive AI recommendations.',
+    description: 'Maintain storage spaces, clients, pricing, bookings, reports, and AI recommendations.',
     defaultEmail: 'owner@rentallq.com',
   },
   {
-    id: 'MANAGER',
-    title: 'Manager',
-    badge: 'Ops & Staff',
-    icon: Briefcase,
+    id: 'CLIENT',
+    title: 'Client / Tenant',
+    badge: 'Buy & Pay Storage',
+    icon: UserCheck,
     color: 'text-sky-700 border-sky-300 bg-sky-50',
     accentBg: 'bg-sky-600',
-    description: 'Manage employees, bookings, customer invoices, and export financial reports.',
-    defaultEmail: 'manager@rentallq.com',
+    description: 'Browse available storage spaces, select and buy/rent units, pay online, and view active rentals.',
+    defaultEmail: 'client@rentallq.com',
   },
   {
-    id: 'STAFF',
-    title: 'Staff',
-    badge: 'Daily Updates',
-    icon: Wrench,
-    color: 'text-emerald-700 border-emerald-300 bg-emerald-50',
-    accentBg: 'bg-emerald-600',
-    description: 'Update unit bookings, customer contact details, and record daily rental payments.',
-    defaultEmail: 'staff@rentallq.com',
+    id: 'ADMIN',
+    title: 'Super Admin',
+    badge: 'Platform Control',
+    icon: Shield,
+    color: 'text-rose-700 border-rose-300 bg-rose-50',
+    accentBg: 'bg-rose-600',
+    description: 'Remove inappropriate business owners, oversee platform clients, and manage storage pages.',
+    defaultEmail: 'admin@rentallq.com',
   },
 ];
 
@@ -109,11 +110,17 @@ export function BusinessRoleLoginFlow() {
     document.cookie = `rentallq_demo_session=${role}; path=/; max-age=86400`;
   };
 
+  const getRedirectPathForRole = (role: RoleType) => {
+    if (role === 'CLIENT') return '/dashboard';
+    if (role === 'ADMIN') return '/admin/dashboard';
+    return '/business/dashboard';
+  };
+
   const handleDemoLogin = (roleId: RoleType) => {
     setLoading(true);
     setSelectedRole(roleId);
     setDemoCookie(roleId);
-    router.push('/business/dashboard');
+    router.push(getRedirectPathForRole(roleId));
   };
 
   const handleLoginSubmit = async (e: React.FormEvent) => {
@@ -141,7 +148,7 @@ export function BusinessRoleLoginFlow() {
     } catch (err: any) {
       console.warn('Supabase auth fallback active', err);
     } finally {
-      router.push('/business/dashboard');
+      router.push(getRedirectPathForRole(selectedRole));
     }
   };
 
@@ -175,7 +182,7 @@ export function BusinessRoleLoginFlow() {
     } catch (err: any) {
       console.warn('Supabase signup fallback active', err);
     } finally {
-      router.push('/business/dashboard');
+      router.push(getRedirectPathForRole(selectedRole));
     }
   };
 
@@ -311,21 +318,21 @@ export function BusinessRoleLoginFlow() {
                 <div className="flex flex-wrap items-center justify-center gap-2">
                   <button
                     onClick={() => handleDemoLogin('BUSINESS_OWNER')}
-                    className="px-3 py-1.5 bg-amber-500 text-navy-900 text-xs font-bold rounded-xl shadow-2xs hover:bg-amber-400 transition cursor-pointer"
+                    className="px-3 py-1.5 bg-amber-500 text-navy-900 text-xs font-bold rounded-xl shadow-2xs hover:bg-amber-400 transition cursor-pointer flex items-center gap-1"
                   >
                     👑 Demo Business Owner
                   </button>
                   <button
-                    onClick={() => handleDemoLogin('MANAGER')}
-                    className="px-3 py-1.5 bg-sky-700 text-white text-xs font-bold rounded-xl shadow-2xs hover:bg-sky-800 transition cursor-pointer"
+                    onClick={() => handleDemoLogin('CLIENT')}
+                    className="px-3 py-1.5 bg-sky-700 text-white text-xs font-bold rounded-xl shadow-2xs hover:bg-sky-800 transition cursor-pointer flex items-center gap-1"
                   >
-                    👔 Demo Manager
+                    👤 Demo Client / Tenant
                   </button>
                   <button
-                    onClick={() => handleDemoLogin('STAFF')}
-                    className="px-3 py-1.5 bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-2xs hover:bg-emerald-800 transition cursor-pointer"
+                    onClick={() => handleDemoLogin('ADMIN')}
+                    className="px-3 py-1.5 bg-rose-700 text-white text-xs font-bold rounded-xl shadow-2xs hover:bg-rose-800 transition cursor-pointer flex items-center gap-1"
                   >
-                    🛠️ Demo Staff
+                    🛡️ Demo Super Admin
                   </button>
                 </div>
               </div>
@@ -337,11 +344,11 @@ export function BusinessRoleLoginFlow() {
           {screen !== 'role-select' && (
             <div className="max-w-md mx-auto">
               <motion.div
-                layoutId={`auth-card-shell-${selectedRole}`}
+                key={`auth-card-${selectedRole}-${screen}`}
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                transition={{ duration: 0.3 }}
                 className="rounded-2xl border border-stone-200/90 bg-white p-8 shadow-xl shadow-stone-200/60 relative space-y-6"
               >
                 {/* Role Header Badge + Back Arrow */}

@@ -2,9 +2,10 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Calendar, CreditCard, Send, UserCheck } from 'lucide-react';
+import { Calendar, CreditCard, Send, UserCheck, Building2 } from 'lucide-react';
 
 const clientNavItems = [
+  { label: 'Browse Storage Spaces', href: '/dashboard/storage-spaces', icon: Building2 },
   { label: 'My Bookings', href: '/dashboard', icon: Calendar },
   { label: 'My Payments', href: '/dashboard/my-payments', icon: CreditCard },
   { label: 'Make a Request', href: '/dashboard/request', icon: Send },

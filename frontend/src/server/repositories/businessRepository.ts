@@ -70,4 +70,17 @@ export class BusinessRepository {
     }
     return this.mapToRecord(inserted);
   }
+
+  async delete(id: string): Promise<boolean> {
+    const { error } = await this.client
+      .from('businesses')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      console.error('Error deleting business:', error);
+      throw error;
+    }
+    return true;
+  }
 }

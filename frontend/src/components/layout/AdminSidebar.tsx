@@ -2,10 +2,12 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Building2, Calendar, CreditCard, Settings, Shield } from 'lucide-react';
+import { Building2, Calendar, CreditCard, Settings, Shield, Users, Layers } from 'lucide-react';
 
 const adminNavItems = [
-  { label: 'Businesses', href: '/admin/dashboard', icon: Building2 },
+  { label: 'Business Owners', href: '/admin/dashboard', icon: Building2 },
+  { label: 'Storage Spaces', href: '/admin/dashboard/all-storage-spaces', icon: Layers },
+  { label: 'Clients', href: '/admin/dashboard/all-clients', icon: Users },
   { label: 'All Bookings', href: '/admin/dashboard/all-bookings', icon: Calendar },
   { label: 'All Payments', href: '/admin/dashboard/all-payments', icon: CreditCard },
   { label: 'Platform Settings', href: '/admin/dashboard/settings', icon: Settings },
