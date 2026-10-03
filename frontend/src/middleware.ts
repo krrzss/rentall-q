@@ -43,6 +43,7 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith('/business/login') ||
     pathname.startsWith('/business/register') ||
     pathname.startsWith('/contact') ||
+    pathname.startsWith('/companies') ||
     pathname.startsWith('/api/');
 
   // Protected route definitions
