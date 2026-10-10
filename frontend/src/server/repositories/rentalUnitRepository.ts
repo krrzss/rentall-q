@@ -1,4 +1,3 @@
-import { supabase as defaultSupabase } from '@/server/lib/supabaseClient';
 import {
   RentalUnitRecord,
   RentalUnitStatus,
@@ -8,7 +7,7 @@ import {
 import { SupabaseClient } from '@supabase/supabase-js';
 
 export class RentalUnitRepository {
-  constructor(private readonly client: SupabaseClient = defaultSupabase) {}
+  constructor(private readonly client: SupabaseClient) {}
 
   private mapToRecord(record: any): RentalUnitRecord {
     const rawStatus = record.status;

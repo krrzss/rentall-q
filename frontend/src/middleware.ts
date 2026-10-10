@@ -32,8 +32,6 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const pathname = request.nextUrl.pathname;
-  const demoCookie = request.cookies.get('rentallq_demo_session')?.value;
-  const isAuthenticated = Boolean(user || demoCookie);
 
   // Check public routes that do NOT require auth protection
   const isPublicRoute =
@@ -42,38 +40,42 @@ export async function middleware(request: NextRequest) {
     pathname === '/register' ||
     pathname.startsWith('/business/login') ||
     pathname.startsWith('/business/register') ||
+    pathname.startsWith('/admin/login') ||
     pathname.startsWith('/contact') ||
-    pathname.startsWith('/api/');
+    pathname.startsWith('/api/contact') ||
+    // business register API is called from the public register page
+    pathname === '/api/businesses/register';
 
   // Protected route definitions
   const isBusinessRoute = pathname.startsWith('/business') && !isPublicRoute;
   const isAdminRoute = pathname.startsWith('/admin/dashboard');
   const isClientRoute =
-    (pathname.startsWith('/dashboard') || pathname.startsWith('/my-payments') || pathname.startsWith('/request')) &&
+    (pathname.startsWith('/dashboard') ||
+      pathname.startsWith('/storage-spaces') ||
+      pathname.startsWith('/my-payments') ||
+      pathname.startsWith('/request')) &&
     !isPublicRoute;
 
-  // Unauthenticated user protection
-  if (!isAuthenticated && (isBusinessRoute || isAdminRoute || isClientRoute)) {
+  // Unauthenticated user protection — no session = redirect to login or 401 for API
+  if (!user && (isBusinessRoute || isAdminRoute || isClientRoute)) {
     const url = request.nextUrl.clone();
     url.pathname = isBusinessRoute ? '/business/login' : '/login';
     return NextResponse.redirect(url);
   }
 
-  // Role-based protection for authenticated/demo users
-  if (isAuthenticated) {
-    let role = 'BUSINESS_OWNER';
+  if (!user && pathname.startsWith('/api/') && !isPublicRoute) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
 
-    if (user) {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', user.id)
-        .maybeSingle();
+  // Role-based protection for authenticated users
+  if (user) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .maybeSingle();
 
-      role = profile?.role || 'BUSINESS_OWNER';
-    } else if (demoCookie) {
-      role = demoCookie;
-    }
+    const role = profile?.role ?? null;
 
     // 1. Admin route protection
     if (isAdminRoute && role !== 'ADMIN') {

@@ -25,18 +25,6 @@ export function Navbar() {
         } = await supabase.auth.getUser();
 
         if (!user) {
-          const demoRole = document.cookie
-            .split('; ')
-            .find((row) => row.startsWith('rentallq_demo_session='))
-            ?.split('=')[1];
-
-          if (demoRole) {
-            setProfile({
-              name: demoRole === 'BUSINESS_OWNER' ? 'Business Owner' : demoRole === 'MANAGER' ? 'Manager' : 'Staff',
-              role: demoRole.replace('_', ' '),
-              email: `${demoRole.toLowerCase()}@rentallq.com`,
-            });
-          }
           setLoading(false);
           return;
         }
@@ -73,7 +61,6 @@ export function Navbar() {
 
   const handleSignOut = async () => {
     const supabase = createClient();
-    document.cookie = 'rentallq_demo_session=; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT;';
     try {
       await supabase.auth.signOut();
     } catch (err) {

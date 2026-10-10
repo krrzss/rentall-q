@@ -43,7 +43,7 @@ export default function BusinessSettingsPage() {
             </div>
             <div>
               <div className="text-sm font-bold font-serif">Professional Plan</div>
-              <div className="text-xs text-stone-300">$99.00 / month &bull; Billed Annually</div>
+              <div className="text-xs text-stone-300">₹7,999 / month &bull; Billed Annually</div>
             </div>
           </div>
           <span className="text-xs font-bold bg-amber-500 text-navy-900 px-3 py-1 rounded-full">

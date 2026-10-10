@@ -18,7 +18,7 @@ export function PaymentCard({ payment, onStatusChange, onDelete }: PaymentCardPr
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div className="space-y-1.5 text-sm">
           <div className="flex items-center gap-2">
-            <h3 className="text-lg font-bold text-emerald-600">${payment.amount.toFixed(2)}</h3>
+            <h3 className="text-lg font-bold text-emerald-600">₹{payment.amount.toFixed(2)}</h3>
             <Badge status={payment.status}>{payment.status}</Badge>
           </div>
           <div><span className="font-medium text-slate-500">Payment ID:</span> <span className="font-mono text-xs text-slate-800">{payment.id}</span></div>

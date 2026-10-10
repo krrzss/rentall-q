@@ -4,7 +4,7 @@ import { RentalUnitRecord, CreateRentalUnitInput } from './types';
 export class CreateRentalUnitUseCase {
   constructor(private readonly rentalUnitRepository: RentalUnitRepository) {}
 
-  async execute(input: CreateRentalUnitInput): Promise<RentalUnitRecord> {
+  async execute(input: CreateRentalUnitInput & { businessId?: string }): Promise<RentalUnitRecord> {
     if (!input.name || !input.name.trim()) {
       throw new Error('Rental unit name is required');
     }
@@ -21,6 +21,7 @@ export class CreateRentalUnitUseCase {
       description: input.description?.trim() || '',
       basePrice: input.basePrice,
       status: input.status || 'AVAILABLE',
+      businessId: input.businessId,
     });
   }
 }

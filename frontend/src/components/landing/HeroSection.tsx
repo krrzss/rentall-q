@@ -77,7 +77,7 @@ export function HeroSection({ onOpenTrialModal }: HeroSectionProps) {
             variants={containerVariants}
             initial="hidden"
             animate="visible"
-            className="space-y-6 text-left bg-cream-50/85 backdrop-blur-md p-6 sm:p-8 rounded-3xl border border-stone-200/70 shadow-xl shadow-navy-950/10"
+            className="space-y-6 text-left bg-cream-50 p-6 sm:p-8 rounded-3xl border border-stone-200 shadow-md"
           >
             <motion.p variants={itemVariants} className="text-xs font-bold uppercase tracking-[0.25em] text-amber-600">
               SMART RENTAL OPERATIONS &amp; DECISION INTELLIGENCE
@@ -123,7 +123,7 @@ export function HeroSection({ onOpenTrialModal }: HeroSectionProps) {
 
           {/* Right Column — Dashboard Preview with Slow Parallax */}
           <motion.div style={{ y: yParallax }} className="relative">
-            <div className="rounded-2xl border border-stone-300 bg-white p-5 shadow-xl shadow-stone-200/70">
+            <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-md">
               {/* Screenshot Header */}
               <div className="flex items-center justify-between pb-3 mb-4 border-b border-stone-200 bg-cream-50 -mx-5 -mt-5 p-4 rounded-t-2xl">
                 <span className="text-[11px] font-bold uppercase tracking-wider text-navy-900 font-mono">

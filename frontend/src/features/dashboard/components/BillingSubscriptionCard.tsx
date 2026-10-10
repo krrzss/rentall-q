@@ -46,7 +46,7 @@ export function BillingSubscriptionCard({ onNotify }: BillingSubscriptionCardPro
               </div>
               <div>
                 <div className="text-base font-bold font-serif">Professional Tier</div>
-                <div className="text-xs text-stone-300">₹7,999 / mo ($99 USD) &bull; Billed Annually</div>
+                <div className="text-xs text-stone-300">₹7,999 / mo &bull; Billed Annually</div>
               </div>
             </div>
             <span className="text-[10px] font-bold bg-emerald-500 text-navy-950 px-2.5 py-1 rounded-full uppercase tracking-wider">

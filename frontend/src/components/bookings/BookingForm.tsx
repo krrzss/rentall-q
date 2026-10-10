@@ -65,7 +65,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({ onSuccess }) => {
           <input className="input-field" type="date" value={checkOut} onChange={e => setCheckOut(e.target.value)} required />
         </div>
         <div>
-          <label style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Daily Rate ($)</label>
+          <label style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Daily Rate (₹)</label>
           <input className="input-field" type="number" value={dailyRate} onChange={e => setDailyRate(Number(e.target.value))} required />
         </div>
         <div style={{ gridColumn: '1 / -1', marginTop: '8px' }}>

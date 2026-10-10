@@ -347,7 +347,7 @@ export default function StorageSpacesMarketplace() {
                   <span className="text-xs text-stone-500 block font-medium">Starting at</span>
                   <div className="flex items-baseline gap-1">
                     <span className="text-2xl font-bold text-navy-900 font-serif">
-                      ${unit.basePrice}
+                      ₹{unit.basePrice}
                     </span>
                     <span className="text-xs text-stone-500 font-medium">/mo</span>
                   </div>
@@ -417,7 +417,7 @@ export default function StorageSpacesMarketplace() {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-stone-500">Amount Paid:</span>
-                    <span className="font-bold text-emerald-700">${getTotalPrice().toFixed(2)}</span>
+                    <span className="font-bold text-emerald-700">₹{getTotalPrice().toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-stone-500">Access Code:</span>
@@ -438,7 +438,7 @@ export default function StorageSpacesMarketplace() {
                   <Button
                     onClick={() => {
                       setSelectedUnit(null);
-                      router.push('/dashboard/my-payments');
+                      router.push('/my-payments');
                     }}
                     variant="outline"
                     className="flex-1 font-bold text-xs py-3 rounded-xl"
@@ -484,22 +484,22 @@ export default function StorageSpacesMarketplace() {
                 <div className="bg-stone-50 p-4 rounded-xl border border-stone-200 text-xs space-y-2">
                   <div className="flex justify-between text-stone-600">
                     <span>Base Monthly Rate:</span>
-                    <span>${selectedUnit.basePrice} / mo</span>
+                    <span>₹{selectedUnit.basePrice} / mo</span>
                   </div>
                   <div className="flex justify-between text-stone-600">
                     <span>Subtotal ({durationMonths} month/s):</span>
-                    <span>${getSubtotal().toFixed(2)}</span>
+                    <span>₹{getSubtotal().toFixed(2)}</span>
                   </div>
                   {calculateDiscount(durationMonths) > 0 && (
                     <div className="flex justify-between text-emerald-700 font-semibold">
                       <span>Tenure Savings ({calculateDiscount(durationMonths) * 100}%):</span>
-                      <span>-${getDiscountAmount().toFixed(2)}</span>
+                      <span>-₹{getDiscountAmount().toFixed(2)}</span>
                     </div>
                   )}
                   <div className="border-t border-stone-200 pt-2 flex justify-between text-sm font-bold text-navy-900">
                     <span>Total Due Now:</span>
                     <span className="text-amber-600 font-serif text-lg">
-                      ${getTotalPrice().toFixed(2)}
+                      ₹{getTotalPrice().toFixed(2)}
                     </span>
                   </div>
                 </div>
@@ -581,7 +581,7 @@ export default function StorageSpacesMarketplace() {
                   <span>
                     {isProcessing
                       ? 'Processing Encrypted Payment...'
-                      : `Pay $${getTotalPrice().toFixed(2)} & Complete Rental`}
+                      : `Pay ₹${getTotalPrice().toFixed(2)} & Complete Rental`}
                   </span>
                 </Button>
               </form>

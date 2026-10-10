@@ -1,9 +1,8 @@
-import { supabase as defaultSupabase } from '@/server/lib/supabaseClient';
 import { CustomerRecord, CustomerStatus, CreateCustomerInput, UpdateCustomerInput } from '@/server/use-cases/customers/types';
 import { SupabaseClient } from '@supabase/supabase-js';
 
 export class CustomerRepository {
-  constructor(private readonly client: SupabaseClient = defaultSupabase) {}
+  constructor(private readonly client: SupabaseClient) {}
 
   private mapToRecord(record: any): CustomerRecord {
     return {

@@ -111,91 +111,91 @@ export default function AdminStorageSpacesPage() {
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 text-navy-900 font-sans">
       {/* Header Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-navy-800 pb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-stone-200 pb-5">
         <div>
           <div className="flex items-center gap-2">
-            <Building2 className="h-6 w-6 text-amber-400" />
-            <h1 className="text-2xl font-bold tracking-tight text-white font-serif">
-              All Storage Spaces & Pages
+            <Building2 className="h-6 w-6 text-amber-600" />
+            <h1 className="text-2xl font-bold tracking-tight text-navy-900 font-serif">
+              All Storage Spaces &amp; Units
             </h1>
           </div>
-          <p className="text-xs text-stone-400 mt-1">
+          <p className="text-xs text-stone-500 mt-1">
             Super Admin inventory index across all registered business owner providers.
           </p>
         </div>
 
         {/* Search */}
         <div className="relative w-full sm:w-72">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-500" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-400" />
           <input
             type="text"
             placeholder="Search unit, provider, type..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-9 pr-3 py-2 text-xs bg-navy-950 border border-navy-700 rounded-lg text-white placeholder-stone-500 focus:outline-hidden focus:ring-1 focus:ring-amber-500"
+            className="w-full pl-9 pr-3 py-2 text-xs bg-white border border-stone-300 rounded-lg text-navy-900 placeholder-stone-400 focus:outline-hidden focus:ring-2 focus:ring-amber-500"
           />
         </div>
       </div>
 
       {/* Grid */}
       {loading ? (
-        <div className="text-xs text-stone-400">Loading storage inventory...</div>
+        <div className="text-xs text-stone-500">Loading storage inventory...</div>
       ) : filteredUnits.length === 0 ? (
-        <Card className="border-navy-700 bg-navy-800/80 p-8 text-center text-stone-300">
-          <Building2 className="mx-auto h-8 w-8 text-amber-400 mb-2" />
-          <h3 className="text-base font-bold text-white">No Storage Units Found</h3>
+        <Card className="border-stone-200 bg-white p-8 text-center text-stone-500">
+          <Building2 className="mx-auto h-8 w-8 text-stone-400 mb-2" />
+          <h3 className="text-base font-bold text-navy-900">No Storage Units Found</h3>
         </Card>
       ) : (
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {filteredUnits.map((unit) => (
             <Card
               key={unit.id}
-              className="border-navy-700 bg-navy-800/90 text-cream-100 p-5 flex flex-col justify-between hover:border-amber-500/50 transition-all shadow-lg"
+              className="border-stone-200 bg-white text-navy-900 p-5 flex flex-col justify-between hover:border-amber-400 hover:shadow-md transition-all shadow-xs"
             >
               <div className="space-y-3">
-                <div className="flex items-start justify-between gap-2 pb-3 border-b border-navy-700/80">
+                <div className="flex items-start justify-between gap-2 pb-3 border-b border-stone-100">
                   <div>
-                    <span className="text-[10px] font-bold text-amber-400 uppercase tracking-wider block">
+                    <span className="text-[10px] font-bold text-amber-800 uppercase tracking-wider block">
                       {unit.type}
                     </span>
-                    <h3 className="text-sm font-bold text-white font-serif mt-0.5">
+                    <h3 className="text-sm font-bold text-navy-900 font-serif mt-0.5">
                       {unit.name}
                     </h3>
                   </div>
                   <span
                     className={`text-[10px] font-bold px-2 py-0.5 rounded border uppercase shrink-0 ${
                       unit.status === 'AVAILABLE'
-                        ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
+                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
                         : unit.status === 'OCCUPIED'
-                        ? 'bg-amber-500/20 text-amber-300 border-amber-500/30'
-                        : 'bg-rose-500/20 text-rose-300 border-rose-500/30'
+                        ? 'bg-amber-50 text-amber-800 border-amber-200'
+                        : 'bg-rose-50 text-rose-700 border-rose-200'
                     }`}
                   >
                     {unit.status}
                   </span>
                 </div>
 
-                <div className="text-xs text-stone-400 space-y-1 bg-navy-950/60 p-3 rounded-lg border border-navy-800">
+                <div className="text-xs text-stone-600 space-y-1.5 bg-cream-100/70 p-3 rounded-lg border border-stone-200/60">
                   <div className="flex justify-between">
-                    <span>Business Provider:</span>
-                    <span className="font-bold text-white">{unit.businessName}</span>
+                    <span className="text-stone-500">Business Provider:</span>
+                    <span className="font-bold text-navy-900">{unit.businessName}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span>Dimensions:</span>
-                    <span className="text-stone-300">{unit.dimensions}</span>
+                    <span className="text-stone-500">Dimensions:</span>
+                    <span className="text-stone-700">{unit.dimensions}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span>Base Rate:</span>
-                    <span className="font-bold text-amber-400">${unit.basePrice} / mo</span>
+                    <span className="text-stone-500">Base Rate:</span>
+                    <span className="font-bold text-emerald-700">₹{unit.basePrice} / mo</span>
                   </div>
                 </div>
               </div>
 
-              <div className="pt-3 mt-3 border-t border-navy-700/80 flex items-center justify-between text-[11px] text-stone-400">
+              <div className="pt-3 mt-3 border-t border-stone-100 flex items-center justify-between text-[11px] text-stone-500">
                 <span>Unit ID: {unit.id}</span>
-                <span className="text-amber-300 font-medium">Verified Active</span>
+                <span className="text-emerald-700 font-medium">Verified Active</span>
               </div>
             </Card>
           ))}

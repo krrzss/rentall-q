@@ -4,7 +4,7 @@ import { PaymentRecord, CreatePaymentInput } from './types';
 export class CreatePaymentUseCase {
   constructor(private readonly paymentRepository: PaymentRepository) {}
 
-  async execute(input: CreatePaymentInput): Promise<PaymentRecord> {
+  async execute(input: CreatePaymentInput & { businessId?: string }): Promise<PaymentRecord> {
     if (!input.bookingId) {
       throw new Error('bookingId is required');
     }
@@ -24,6 +24,7 @@ export class CreatePaymentUseCase {
       dueDate: input.dueDate,
       method: input.method,
       status: input.status || 'PENDING',
+      businessId: input.businessId,
     });
   }
 }

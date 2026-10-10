@@ -38,9 +38,6 @@ export function Footer({ onOpenTrialModal }: FooterProps) {
             <Link href="/business/login" className="hover:text-amber-400 transition-colors">
               Business Portal
             </Link>
-            <Link href="/admin/login" className="hover:text-amber-400 transition-colors">
-              Admin Console
-            </Link>
           </div>
         </div>
 
@@ -54,12 +51,10 @@ export function Footer({ onOpenTrialModal }: FooterProps) {
         href="https://wa.me/15551234567?text=Hi%20RentallQ,%20I'm%20interested%20in%20a%20demo%20or%20free%20trial!"
         target="_blank"
         rel="noopener noreferrer"
-        className="fixed bottom-6 right-6 z-50 flex items-center justify-center h-13 w-13 rounded-full bg-emerald-500 text-white shadow-xl hover:bg-emerald-600 hover:scale-105 transition-all group"
+        className="fixed bottom-6 right-6 z-50 flex items-center justify-center h-12 w-12 rounded-full bg-emerald-600 text-white shadow-md hover:bg-emerald-700 hover:scale-105 transition-all group"
         aria-label="Chat on WhatsApp"
       >
-        {/* Pulsing ring indicator */}
-        <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 animate-ping pointer-events-none" />
-        <MessageCircle className="h-6 w-6 relative z-10" />
+        <MessageCircle className="h-6 w-6" />
       </a>
     </footer>
   );

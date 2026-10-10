@@ -156,7 +156,7 @@ export function NewBookingModal({ isOpen, onClose, onSuccess }: NewBookingModalP
                     <div className="text-xs text-stone-500">{u.type}</div>
                   </div>
                   <div className="text-right">
-                    <div className="font-bold text-emerald-700 text-sm">${u.rate}/mo</div>
+                    <div className="font-bold text-emerald-700 text-sm">₹{u.rate}/mo</div>
                     {selectedUnit.id === u.id ? <Check className="h-4 w-4 text-amber-600 ml-auto" /> : null}
                   </div>
                 </div>
@@ -203,7 +203,7 @@ export function NewBookingModal({ isOpen, onClose, onSuccess }: NewBookingModalP
             <div className="rounded-xl border border-stone-200 bg-cream-50 p-4 space-y-2">
               <div className="flex justify-between text-stone-600">
                 <span>Monthly Rate:</span>
-                <span className="font-bold text-navy-900">${selectedUnit.rate}.00 / mo</span>
+                <span className="font-bold text-navy-900">₹{selectedUnit.rate}.00 / mo</span>
               </div>
               <div className="flex justify-between text-stone-600">
                 <span>Lease Term:</span>
@@ -211,7 +211,7 @@ export function NewBookingModal({ isOpen, onClose, onSuccess }: NewBookingModalP
               </div>
               <div className="flex justify-between pt-2 border-t border-stone-200 text-sm font-bold text-navy-900">
                 <span>Total Lease Commitment:</span>
-                <span className="text-emerald-700">${(selectedUnit.rate * 12).toLocaleString()}.00</span>
+                <span className="text-emerald-700">₹{(selectedUnit.rate * 12).toLocaleString()}.00</span>
               </div>
             </div>
 
@@ -250,7 +250,7 @@ export function NewBookingModal({ isOpen, onClose, onSuccess }: NewBookingModalP
                 </div>
                 <div className="flex justify-between">
                   <span>Total Amount:</span>
-                  <span className="font-bold text-emerald-700 text-sm">${(selectedUnit.rate * 12).toLocaleString()}.00</span>
+                  <span className="font-bold text-emerald-700 text-sm">₹{(selectedUnit.rate * 12).toLocaleString()}.00</span>
                 </div>
               </div>
             </div>

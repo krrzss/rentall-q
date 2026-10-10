@@ -56,8 +56,8 @@ export const BookingList: React.FC = () => {
                   <td style={{ padding: '12px 8px' }}>{b.rentalUnitId}</td>
                   <td style={{ padding: '12px 8px' }}>{new Date(b.checkIn).toLocaleDateString()}</td>
                   <td style={{ padding: '12px 8px' }}>{new Date(b.checkOut).toLocaleDateString()}</td>
-                  <td style={{ padding: '12px 8px' }}>${b.dailyRate}</td>
-                  <td style={{ padding: '12px 8px', color: '#4ade80', fontWeight: 600 }}>${b.totalPrice}</td>
+                  <td style={{ padding: '12px 8px' }}>₹{b.dailyRate}</td>
+                  <td style={{ padding: '12px 8px', color: '#4ade80', fontWeight: 600 }}>₹{b.totalPrice}</td>
                   <td style={{ padding: '12px 8px' }}><Badge status={b.status} /></td>
                 </tr>
               ))}

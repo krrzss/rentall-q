@@ -4,7 +4,7 @@ import { CustomerRecord } from './types';
 export class ListCustomersUseCase {
   constructor(private readonly customerRepository: CustomerRepository) {}
 
-  async execute(): Promise<CustomerRecord[]> {
-    return this.customerRepository.findAll();
+  async execute(businessId?: string): Promise<CustomerRecord[]> {
+    return this.customerRepository.findAll(businessId);
   }
 }

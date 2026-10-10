@@ -37,7 +37,7 @@ export default function BusinessReportsPage() {
             <span>YTD Revenue</span>
             <TrendingUp className="h-4 w-4 text-emerald-600" />
           </div>
-          <div className="text-2xl font-bold text-navy-900 mt-2 font-serif">$412,850.00</div>
+          <div className="text-2xl font-bold text-navy-900 mt-2 font-serif">₹412,850.00</div>
           <div className="text-[11px] text-emerald-700 font-medium mt-1">+14.2% YoY growth</div>
         </Card>
 

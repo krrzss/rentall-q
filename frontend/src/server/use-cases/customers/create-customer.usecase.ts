@@ -4,7 +4,7 @@ import { CustomerRecord, CreateCustomerInput } from './types';
 export class CreateCustomerUseCase {
   constructor(private readonly customerRepository: CustomerRepository) {}
 
-  async execute(input: CreateCustomerInput): Promise<CustomerRecord> {
+  async execute(input: CreateCustomerInput & { businessId?: string }): Promise<CustomerRecord> {
     if (!input.name || !input.name.trim()) {
       throw new Error('Customer name is required');
     }
@@ -18,6 +18,7 @@ export class CreateCustomerUseCase {
       phone: input.phone?.trim() || '',
       address: input.address?.trim() || '',
       status: input.status || 'ACTIVE',
+      businessId: input.businessId,
     });
   }
 }

@@ -1,14 +1,17 @@
 import { NextResponse } from 'next/server';
+import { getAuthContext } from '@/server/lib/getAuthContext';
 import { GetPaymentByIdUseCase } from '@/server/use-cases/payments/get-payment.usecase';
 import { UpdatePaymentStatusUseCase } from '@/server/use-cases/payments/update-payment-status.usecase';
 import { DeletePaymentUseCase } from '@/server/use-cases/payments/delete-payment.usecase';
 import { PaymentRepository } from '@/server/repositories/paymentRepository';
 
-const paymentRepository = new PaymentRepository();
-
 export async function GET(_: Request, { params }: { params: { id: string } }) {
+  const ctx = await getAuthContext();
+  if (ctx instanceof NextResponse) return ctx;
+
   try {
-    const useCase = new GetPaymentByIdUseCase(paymentRepository);
+    const repo = new PaymentRepository(ctx.supabase);
+    const useCase = new GetPaymentByIdUseCase(repo);
     const payment = await useCase.execute(params.id);
 
     if (!payment) {
@@ -22,9 +25,13 @@ export async function GET(_: Request, { params }: { params: { id: string } }) {
 }
 
 export async function PATCH(request: Request, { params }: { params: { id: string } }) {
+  const ctx = await getAuthContext();
+  if (ctx instanceof NextResponse) return ctx;
+
   try {
     const body = await request.json();
-    const useCase = new UpdatePaymentStatusUseCase(paymentRepository);
+    const repo = new PaymentRepository(ctx.supabase);
+    const useCase = new UpdatePaymentStatusUseCase(repo);
     const payment = await useCase.execute(params.id, body.status);
     return NextResponse.json(payment);
   } catch (error: any) {
@@ -33,8 +40,12 @@ export async function PATCH(request: Request, { params }: { params: { id: string
 }
 
 export async function DELETE(_: Request, { params }: { params: { id: string } }) {
+  const ctx = await getAuthContext();
+  if (ctx instanceof NextResponse) return ctx;
+
   try {
-    const useCase = new DeletePaymentUseCase(paymentRepository);
+    const repo = new PaymentRepository(ctx.supabase);
+    const useCase = new DeletePaymentUseCase(repo);
     await useCase.execute(params.id);
     return NextResponse.json({ success: true });
   } catch (error: any) {

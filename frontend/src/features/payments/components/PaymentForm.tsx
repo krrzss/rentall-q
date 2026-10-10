@@ -105,14 +105,14 @@ export function PaymentForm({ onSuccess, onClose }: PaymentFormProps) {
             bookings.map((booking) => (
               <option key={booking.id} value={booking.id}>
                 Booking {booking.id.slice(0, 8)}... — {booking.customerName || 'Customer'} (
-                {booking.rentalUnitName || 'Unit'}) - ${booking.totalAmount}
+                {booking.rentalUnitName || 'Unit'}) - ₹{booking.totalAmount}
               </option>
             ))
           )}
         </Select>
 
         <Input
-          label="Payment Amount ($)"
+          label="Payment Amount (₹)"
           type="number"
           min="0.01"
           step="0.01"

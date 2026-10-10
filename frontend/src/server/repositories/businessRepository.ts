@@ -1,4 +1,3 @@
-import { supabase as defaultSupabase } from '@/server/lib/supabaseClient';
 import { SupabaseClient } from '@supabase/supabase-js';
 
 export interface BusinessRecord {
@@ -16,7 +15,7 @@ export interface CreateBusinessInput {
 }
 
 export class BusinessRepository {
-  constructor(private readonly client: SupabaseClient = defaultSupabase) {}
+  constructor(private readonly client: SupabaseClient) {}
 
   private mapToRecord(data: any): BusinessRecord {
     return {
@@ -28,11 +27,17 @@ export class BusinessRepository {
     };
   }
 
-  async findAll(): Promise<BusinessRecord[]> {
-    const { data, error } = await this.client
+  async findAll(businessId?: string): Promise<BusinessRecord[]> {
+    let query = this.client
       .from('businesses')
       .select('*')
       .order('created_at', { ascending: false });
+
+    if (businessId) {
+      query = query.eq('id', businessId);
+    }
+
+    const { data, error } = await query;
 
     if (error) {
       console.error('Error fetching businesses:', error);

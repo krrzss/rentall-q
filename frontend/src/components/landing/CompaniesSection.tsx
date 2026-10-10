@@ -167,7 +167,7 @@ export function CompaniesSection() {
               <motion.div
                 key={company.name}
                 variants={cardVariants}
-                className={`group relative rounded-2xl border border-stone-200 bg-white p-6 shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300 cursor-default ${accent.glow}`}
+                className="group relative rounded-2xl border border-stone-200 bg-white p-6 shadow-sm hover:shadow-md hover:border-amber-400 transition-all duration-200 cursor-default"
               >
                 <div className="flex items-start justify-between mb-4">
                   <div className={`flex h-11 w-11 items-center justify-center rounded-xl ${accent.icon} transition-colors`}>

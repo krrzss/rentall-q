@@ -1,14 +1,17 @@
 import { NextResponse } from 'next/server';
+import { getAuthContext } from '@/server/lib/getAuthContext';
 import { GetCustomerByIdUseCase } from '@/server/use-cases/customers/get-customer.usecase';
 import { UpdateCustomerUseCase } from '@/server/use-cases/customers/update-customer.usecase';
 import { DeleteCustomerUseCase } from '@/server/use-cases/customers/delete-customer.usecase';
 import { CustomerRepository } from '@/server/repositories/customerRepository';
 
-const customerRepository = new CustomerRepository();
-
 export async function GET(_: Request, { params }: { params: { id: string } }) {
+  const ctx = await getAuthContext();
+  if (ctx instanceof NextResponse) return ctx;
+
   try {
-    const useCase = new GetCustomerByIdUseCase(customerRepository);
+    const repo = new CustomerRepository(ctx.supabase);
+    const useCase = new GetCustomerByIdUseCase(repo);
     const customer = await useCase.execute(params.id);
 
     if (!customer) {
@@ -22,9 +25,13 @@ export async function GET(_: Request, { params }: { params: { id: string } }) {
 }
 
 export async function PATCH(request: Request, { params }: { params: { id: string } }) {
+  const ctx = await getAuthContext();
+  if (ctx instanceof NextResponse) return ctx;
+
   try {
     const body = await request.json();
-    const useCase = new UpdateCustomerUseCase(customerRepository);
+    const repo = new CustomerRepository(ctx.supabase);
+    const useCase = new UpdateCustomerUseCase(repo);
     const customer = await useCase.execute(params.id, body);
     return NextResponse.json(customer);
   } catch (error: any) {
@@ -33,8 +40,12 @@ export async function PATCH(request: Request, { params }: { params: { id: string
 }
 
 export async function DELETE(_: Request, { params }: { params: { id: string } }) {
+  const ctx = await getAuthContext();
+  if (ctx instanceof NextResponse) return ctx;
+
   try {
-    const useCase = new DeleteCustomerUseCase(customerRepository);
+    const repo = new CustomerRepository(ctx.supabase);
+    const useCase = new DeleteCustomerUseCase(repo);
     await useCase.execute(params.id);
     return NextResponse.json({ success: true });
   } catch (error: any) {

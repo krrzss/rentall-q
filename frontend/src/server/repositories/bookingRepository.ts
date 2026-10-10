@@ -1,9 +1,8 @@
-import { supabase as defaultSupabase } from '@/server/lib/supabaseClient';
 import { BookingRecord, BookingStatus } from '@/server/use-cases/bookings/types';
 import { SupabaseClient } from '@supabase/supabase-js';
 
 export class BookingRepository {
-  constructor(private readonly client: SupabaseClient = defaultSupabase) {}
+  constructor(private readonly client: SupabaseClient) {}
 
   private mapToRecord(record: any): BookingRecord {
     const customerName = Array.isArray(record.customer)
@@ -79,6 +78,38 @@ export class BookingRepository {
     return this.mapToRecord(data);
   }
 
+  async findActiveByRentalUnitId(rentalUnitId: string, businessId?: string): Promise<BookingRecord[]> {
+    let query = this.client
+      .from('bookings')
+      .select(`
+        id,
+        customer_id,
+        rental_unit_id,
+        start_date,
+        end_date,
+        status,
+        total_amount,
+        created_at,
+        customer:customers(name),
+        rentalUnit:rental_units(name)
+      `)
+      .eq('rental_unit_id', rentalUnitId)
+      .neq('status', 'CANCELLED');
+
+    if (businessId) {
+      query = query.eq('business_id', businessId);
+    }
+
+    const { data, error } = await query;
+
+    if (error) throw error;
+    return (data || []).map((record) => this.mapToRecord(record));
+  }
+
+  async findByRentalUnitId(rentalUnitId: string, businessId?: string): Promise<BookingRecord[]> {
+    return this.findActiveByRentalUnitId(rentalUnitId, businessId);
+  }
+
   async create(input: {
     customerId: string;
     rentalUnitId: string;
@@ -88,6 +119,22 @@ export class BookingRepository {
     status: BookingStatus;
     businessId?: string;
   }): Promise<BookingRecord> {
+    const existingBookings = await this.findActiveByRentalUnitId(input.rentalUnitId, input.businessId);
+
+    const newStart = (input.startDate instanceof Date ? input.startDate : new Date(input.startDate)).getTime();
+    const newEnd = (input.endDate instanceof Date ? input.endDate : new Date(input.endDate)).getTime();
+
+    const hasOverlap = existingBookings.some((booking) => {
+      if (booking.status?.toUpperCase() === 'CANCELLED') return false;
+      const existingStart = (booking.startDate instanceof Date ? booking.startDate : new Date(booking.startDate)).getTime();
+      const existingEnd = (booking.endDate instanceof Date ? booking.endDate : new Date(booking.endDate)).getTime();
+      return newStart < existingEnd && newEnd > existingStart;
+    });
+
+    if (hasOverlap) {
+      throw new Error('This unit is already booked for part of this date range');
+    }
+
     const payload: any = {
       customer_id: input.customerId,
       rental_unit_id: input.rentalUnitId,

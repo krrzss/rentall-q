@@ -12,7 +12,6 @@ import {
   Building2,
   BarChart3,
   Settings,
-  Shield,
   Crown,
   Briefcase,
   Wrench,
@@ -32,33 +31,22 @@ export function Sidebar() {
           data: { user },
         } = await supabase.auth.getUser();
 
-        if (user) {
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('role')
-            .eq('id', user.id)
-            .maybeSingle();
-
-          if (profile?.role) {
-            setUserRole(profile.role as any);
-          } else {
-            setUserRole('BUSINESS_OWNER');
-          }
-        } else {
-          const demoRole = typeof document !== 'undefined'
-            ? document.cookie
-                .split('; ')
-                .find((row) => row.startsWith('rentallq_demo_session='))
-                ?.split('=')[1]
-            : null;
-          if (demoRole) {
-            setUserRole(demoRole as any);
-          } else {
-            setUserRole('BUSINESS_OWNER');
-          }
+        if (!user) {
+          // No session — middleware should have redirected; show nothing
+          setUserRole(null);
+          return;
         }
+
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', user.id)
+          .maybeSingle();
+
+        setUserRole((profile?.role as any) ?? 'BUSINESS_OWNER');
       } catch (err) {
-        setUserRole('BUSINESS_OWNER');
+        console.error('Sidebar: failed to load role', err);
+        setUserRole(null);
       }
     }
 
@@ -159,7 +147,7 @@ export function Sidebar() {
       {/* Footer Info */}
       <div className="border-t border-stone-100 pt-4 px-2 text-xs text-stone-400 font-medium space-y-1">
         <div>RentallQ Business &bull; 2026</div>
-        <div className="text-[10px] text-stone-400 font-mono">RBAC Active: {userRole || 'OWNER'}</div>
+        <div className="text-[10px] text-stone-400 font-mono">RBAC: {userRole ?? '—'}</div>
       </div>
     </aside>
   );

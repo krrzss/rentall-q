@@ -5,10 +5,10 @@ import { usePathname } from 'next/navigation';
 import { Calendar, CreditCard, Send, UserCheck, Building2 } from 'lucide-react';
 
 const clientNavItems = [
-  { label: 'Browse Storage Spaces', href: '/dashboard/storage-spaces', icon: Building2 },
+  { label: 'Browse Storage Spaces', href: '/storage-spaces', icon: Building2 },
   { label: 'My Bookings', href: '/dashboard', icon: Calendar },
-  { label: 'My Payments', href: '/dashboard/my-payments', icon: CreditCard },
-  { label: 'Make a Request', href: '/dashboard/request', icon: Send },
+  { label: 'My Payments', href: '/my-payments', icon: CreditCard },
+  { label: 'Make a Request', href: '/request', icon: Send },
 ];
 
 export function ClientSidebar() {

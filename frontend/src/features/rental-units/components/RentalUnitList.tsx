@@ -267,7 +267,7 @@ export function RentalUnitList({ refreshKey = 0 }: RentalUnitListProps) {
                     </button>
                   </TableCell>
                   <TableCell className="text-stone-600 text-xs">{unit.type}</TableCell>
-                  <TableCell className="font-bold text-emerald-700 text-xs">${unit.basePrice} / day</TableCell>
+                  <TableCell className="font-bold text-emerald-700 text-xs">₹{unit.basePrice} / day</TableCell>
                   <TableCell>
                     <Select
                       value={unit.status}

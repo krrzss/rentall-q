@@ -64,7 +64,12 @@ export function Navbar({ onOpenTrialModal }: NavbarProps) {
         <div className="hidden md:flex items-center gap-3">
           <Link href="/login">
             <Button variant="ghost" size="sm" className="font-semibold text-navy-700">
-              Sign In
+              Client Sign In
+            </Button>
+          </Link>
+          <Link href="/business/login">
+            <Button variant="outline" size="sm" className="font-semibold text-navy-800 border-stone-300">
+              Business Portal
             </Button>
           </Link>
           <Button
@@ -105,8 +110,13 @@ export function Navbar({ onOpenTrialModal }: NavbarProps) {
           </div>
           <div className="pt-4 border-t border-stone-100 flex flex-col gap-2">
             <Link href="/login" onClick={() => setMobileMenuOpen(false)}>
-              <Button variant="outline" size="md" className="w-full justify-center">
-                Sign In
+              <Button variant="ghost" size="md" className="w-full justify-center font-semibold text-navy-700">
+                Client Sign In
+              </Button>
+            </Link>
+            <Link href="/business/login" onClick={() => setMobileMenuOpen(false)}>
+              <Button variant="outline" size="md" className="w-full justify-center font-semibold text-navy-800 border-stone-300">
+                Business Portal
               </Button>
             </Link>
             <Button

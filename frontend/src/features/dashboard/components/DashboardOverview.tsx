@@ -90,18 +90,8 @@ export function DashboardOverview() {
             setUserRole(profile.role as any);
           }
         } else {
-          const demoRole = typeof document !== 'undefined'
-            ? document.cookie
-                .split('; ')
-                .find((row) => row.startsWith('rentallq_demo_session='))
-                ?.split('=')[1]
-            : null;
-          if (demoRole) {
-            setUserRole(demoRole as any);
-            setUserName(
-              demoRole === 'BUSINESS_OWNER' ? 'Business Owner' : demoRole === 'MANAGER' ? 'Manager' : 'Staff Member'
-            );
-          }
+          // No authenticated session — middleware prevents reaching here,
+          // but if it happens leave defaults in place.
         }
       } catch (err) {
         console.error('Error fetching user info', err);

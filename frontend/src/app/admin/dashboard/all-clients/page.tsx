@@ -114,47 +114,47 @@ export default function AdminClientsPage() {
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 text-navy-900 font-sans">
       {/* Header Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-navy-800 pb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-stone-200 pb-5">
         <div>
           <div className="flex items-center gap-2">
-            <Users className="h-6 w-6 text-amber-400" />
-            <h1 className="text-2xl font-bold tracking-tight text-white font-serif">
+            <Users className="h-6 w-6 text-amber-600" />
+            <h1 className="text-2xl font-bold tracking-tight text-navy-900 font-serif">
               Platform Clients Directory
             </h1>
           </div>
-          <p className="text-xs text-stone-400 mt-1">
+          <p className="text-xs text-stone-500 mt-1">
             Global management and audit log of all registered tenant clients across RentallQ providers.
           </p>
         </div>
 
         {/* Search */}
         <div className="relative w-full sm:w-72">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-500" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-400" />
           <input
             type="text"
             placeholder="Search client name, email, business..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-9 pr-3 py-2 text-xs bg-navy-950 border border-navy-700 rounded-lg text-white placeholder-stone-500 focus:outline-hidden focus:ring-1 focus:ring-amber-500"
+            className="w-full pl-9 pr-3 py-2 text-xs bg-white border border-stone-300 rounded-lg text-navy-900 placeholder-stone-400 focus:outline-hidden focus:ring-2 focus:ring-amber-500"
           />
         </div>
       </div>
 
       {/* Content Table / Cards */}
       {loading ? (
-        <div className="text-xs text-stone-400">Loading platform clients...</div>
+        <div className="text-xs text-stone-500">Loading platform clients...</div>
       ) : filteredClients.length === 0 ? (
-        <Card className="border-navy-700 bg-navy-800/80 p-8 text-center text-stone-300">
-          <Users className="mx-auto h-8 w-8 text-amber-400 mb-2" />
-          <h3 className="text-base font-bold text-white">No Clients Found</h3>
+        <Card className="border-stone-200 bg-white p-8 text-center text-stone-500">
+          <Users className="mx-auto h-8 w-8 text-stone-400 mb-2" />
+          <h3 className="text-base font-bold text-navy-900">No Clients Found</h3>
         </Card>
       ) : (
-        <div className="rounded-xl border border-navy-800 bg-navy-900 overflow-hidden shadow-xl">
+        <div className="rounded-xl border border-stone-200 bg-white overflow-hidden shadow-xs">
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs text-stone-300">
-              <thead className="bg-navy-950 text-stone-400 uppercase font-semibold text-[10px] tracking-wider border-b border-navy-800">
+            <table className="w-full text-left text-xs text-stone-600">
+              <thead className="bg-cream-100 text-stone-600 uppercase font-semibold text-[10px] tracking-wider border-b border-stone-200">
                 <tr>
                   <th className="py-3.5 px-4">Client Name</th>
                   <th className="py-3.5 px-4">Contact Info</th>
@@ -164,37 +164,37 @@ export default function AdminClientsPage() {
                   <th className="py-3.5 px-4 text-right">Status</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-navy-800/80">
+              <tbody className="divide-y divide-stone-100">
                 {filteredClients.map((client) => (
-                  <tr key={client.id} className="hover:bg-navy-800/50 transition-colors">
-                    <td className="py-3.5 px-4 font-bold text-white font-serif">
+                  <tr key={client.id} className="hover:bg-cream-50/70 transition-colors">
+                    <td className="py-3.5 px-4 font-bold text-navy-900 font-serif">
                       {client.name}
                     </td>
                     <td className="py-3.5 px-4">
                       <div className="space-y-0.5">
-                        <div className="flex items-center gap-1.5 text-stone-300">
-                          <Mail className="h-3 w-3 text-amber-400" />
+                        <div className="flex items-center gap-1.5 text-stone-700">
+                          <Mail className="h-3 w-3 text-amber-600" />
                           <span>{client.email}</span>
                         </div>
-                        <div className="flex items-center gap-1.5 text-stone-400">
-                          <Phone className="h-3 w-3 text-stone-500" />
+                        <div className="flex items-center gap-1.5 text-stone-500">
+                          <Phone className="h-3 w-3 text-stone-400" />
                           <span>{client.phone}</span>
                         </div>
                       </div>
                     </td>
-                    <td className="py-3.5 px-4 text-amber-300 font-medium">
+                    <td className="py-3.5 px-4 text-amber-800 font-semibold">
                       {client.businessOwner}
                     </td>
                     <td className="py-3.5 px-4">
-                      <span className="bg-amber-500/10 text-amber-300 px-2 py-0.5 rounded font-bold border border-amber-500/20">
+                      <span className="bg-amber-50 text-amber-800 px-2 py-0.5 rounded font-bold border border-amber-200">
                         {client.activeRentalsCount} Unit/s
                       </span>
                     </td>
-                    <td className="py-3.5 px-4 font-bold text-emerald-400 font-serif">
-                      ${client.totalSpent}
+                    <td className="py-3.5 px-4 font-bold text-emerald-700 font-serif">
+                      ₹{client.totalSpent}
                     </td>
                     <td className="py-3.5 px-4 text-right">
-                      <span className="bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded text-[10px] font-bold border border-emerald-500/30">
+                      <span className="bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded text-[10px] font-bold border border-emerald-200">
                         {client.status}
                       </span>
                     </td>

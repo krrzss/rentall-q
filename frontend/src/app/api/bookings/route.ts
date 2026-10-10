@@ -1,14 +1,17 @@
 import { NextResponse } from 'next/server';
+import { getAuthContext } from '@/server/lib/getAuthContext';
 import { ListBookingsUseCase } from '@/server/use-cases/bookings/list-bookings.usecase';
 import { CreateBookingUseCase } from '@/server/use-cases/bookings/create-booking.usecase';
-import { PrismaBookingRepository } from '@/server/repositories/bookingRepository';
-
-const bookingRepository = new PrismaBookingRepository();
+import { BookingRepository } from '@/server/repositories/bookingRepository';
 
 export async function GET() {
+  const ctx = await getAuthContext();
+  if (ctx instanceof NextResponse) return ctx;
+
   try {
-    const useCase = new ListBookingsUseCase(bookingRepository);
-    const bookings = await useCase.execute();
+    const repo = new BookingRepository(ctx.supabase);
+    const useCase = new ListBookingsUseCase(repo);
+    const bookings = await useCase.execute(ctx.businessId ?? undefined);
     return NextResponse.json(bookings);
   } catch (error: any) {
     return NextResponse.json({ error: error.message || 'Failed to load bookings' }, { status: 500 });
@@ -16,9 +19,13 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const ctx = await getAuthContext();
+  if (ctx instanceof NextResponse) return ctx;
+
   try {
     const body = await request.json();
-    const useCase = new CreateBookingUseCase(bookingRepository);
+    const repo = new BookingRepository(ctx.supabase);
+    const useCase = new CreateBookingUseCase(repo);
 
     const booking = await useCase.execute({
       customerId: body.customerId,
@@ -27,6 +34,7 @@ export async function POST(request: Request) {
       endDate: new Date(body.endDate),
       totalAmount: Number(body.totalAmount ?? 0),
       status: body.status,
+      businessId: ctx.businessId ?? undefined,
     });
 
     return NextResponse.json(booking, { status: 201 });

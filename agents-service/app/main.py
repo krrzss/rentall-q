@@ -1,3 +1,4 @@
+import os
 import json
 import uvicorn
 from app.config import settings
@@ -44,5 +45,6 @@ async def app(scope, receive, send):
 
 
 if __name__ == "__main__":
-    print(f"Starting {settings.PROJECT_NAME} on port {settings.PORT}...")
-    uvicorn.run("app.main:app", host="0.0.0.0", port=settings.PORT, reload=True)
+    port = int(os.getenv("AGENTS_SERVICE_PORT", 8000))
+    print(f"Starting {settings.PROJECT_NAME} on port {port}...")
+    uvicorn.run("app.main:app", host="0.0.0.0", port=port, reload=True)

@@ -17,17 +17,17 @@ export function AdminSidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="w-64 flex-shrink-0 border-r border-navy-800 bg-navy-950 p-5 text-cream-100 flex flex-col justify-between min-h-screen">
+    <aside className="w-64 flex-shrink-0 border-r border-stone-200 bg-white p-5 text-navy-900 flex flex-col justify-between min-h-screen">
       <div className="space-y-6">
         <div className="flex items-center gap-3 px-2 py-1">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500 font-bold text-navy-900 shadow-md">
-            <Shield className="h-5 w-5 text-navy-900" />
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-navy-900 font-bold text-amber-400 shadow-sm">
+            <Shield className="h-5 w-5 text-amber-400" />
           </div>
           <div>
-            <h1 className="text-base font-bold tracking-tight text-white leading-tight font-serif">
+            <h1 className="text-base font-bold tracking-tight text-navy-900 leading-tight font-serif">
               Admin Portal
             </h1>
-            <span className="text-[11px] font-medium text-amber-400">
+            <span className="text-[11px] font-semibold text-amber-600">
               RentAll-Q Super Admin
             </span>
           </div>
@@ -46,13 +46,13 @@ export function AdminSidebar() {
                 href={item.href}
                 className={`flex items-center gap-3 rounded-lg px-3.5 py-2.5 text-sm font-medium transition-all ${
                   isActive
-                    ? 'bg-amber-500/20 text-amber-300 font-semibold shadow-xs'
-                    : 'text-stone-400 hover:bg-navy-900 hover:text-white'
+                    ? 'bg-amber-500/10 text-amber-700 font-semibold shadow-xs'
+                    : 'text-stone-600 hover:bg-cream-200 hover:text-navy-900'
                 }`}
               >
                 <Icon
                   className={`h-4 w-4 transition-colors ${
-                    isActive ? 'text-amber-400' : 'text-stone-500 group-hover:text-stone-300'
+                    isActive ? 'text-amber-600' : 'text-stone-400 group-hover:text-stone-600'
                   }`}
                 />
                 <span>{item.label}</span>
@@ -62,7 +62,7 @@ export function AdminSidebar() {
         </nav>
       </div>
 
-      <div className="border-t border-navy-900 pt-4 px-2 text-xs text-stone-500 font-medium">
+      <div className="border-t border-stone-100 pt-4 px-2 text-xs text-stone-400 font-medium">
         RentallQ Super Admin &bull; v1.0
       </div>
     </aside>

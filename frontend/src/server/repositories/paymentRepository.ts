@@ -1,4 +1,3 @@
-import { supabase as defaultSupabase } from '@/server/lib/supabaseClient';
 import {
   PaymentRecord,
   PaymentStatus,
@@ -8,7 +7,7 @@ import {
 import { SupabaseClient } from '@supabase/supabase-js';
 
 export class PaymentRepository {
-  constructor(private readonly client: SupabaseClient = defaultSupabase) {}
+  constructor(private readonly client: SupabaseClient) {}
 
   private mapToRecord(record: any): PaymentRecord {
     const booking = Array.isArray(record.booking) ? record.booking[0] : record.booking;
