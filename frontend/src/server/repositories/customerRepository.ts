@@ -115,7 +115,7 @@ const SEEDED_WAREHOUSE_CUSTOMERS: Record<string, CustomerRecord[]> = {
   ],
 };
 
-const runtimeCustomersCache: Map<string, CustomerRecord> = new Map();
+export const runtimeCustomersCache: Map<string, CustomerRecord> = new Map();
 
 export class CustomerRepository {
   constructor(private readonly client: SupabaseClient) {}

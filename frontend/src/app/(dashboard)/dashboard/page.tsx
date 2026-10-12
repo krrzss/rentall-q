@@ -17,13 +17,35 @@ import {
   Sparkles,
   Clock,
   CheckCircle2,
+  PackageCheck,
+  MapPin,
+  Layers,
 } from 'lucide-react';
+
+interface ClientBooking {
+  id: string;
+  unitId: string;
+  unitName: string;
+  unitType?: string;
+  location?: string;
+  dimensions?: string;
+  startDate: string;
+  endDate: string;
+  totalAmount: number;
+  monthlyRate?: number;
+  durationMonths?: number;
+  status: string;
+  paymentMethod?: string;
+  transactionId?: string;
+  bookedAt: string;
+}
 
 export default function SmartDashboardPage() {
   const router = useRouter();
   const [role, setRole] = useState<string | null>(null);
   const [userName, setUserName] = useState<string>('Client');
   const [loading, setLoading] = useState(true);
+  const [myBookings, setMyBookings] = useState<ClientBooking[]>([]);
 
   useEffect(() => {
     async function checkRole() {
@@ -61,6 +83,28 @@ export default function SmartDashboardPage() {
 
     checkRole();
   }, [router]);
+
+  // Load bookings from localStorage (saved after payment)
+  useEffect(() => {
+    try {
+      const stored = JSON.parse(localStorage.getItem('rentallq_my_bookings') || '[]');
+      setMyBookings(stored);
+    } catch {
+      setMyBookings([]);
+    }
+  }, []);
+
+  const formatDate = (dateStr: string) => {
+    try {
+      return new Date(dateStr).toLocaleDateString('en-IN', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+      });
+    } catch {
+      return dateStr;
+    }
+  };
 
   if (loading) {
     return (
@@ -110,7 +154,9 @@ export default function SmartDashboardPage() {
               <p className="text-xs font-semibold text-stone-500 uppercase tracking-wider">
                 Active Rentals
               </p>
-              <p className="text-2xl font-bold text-navy-900 font-serif mt-1">1 Unit</p>
+              <p className="text-2xl font-bold text-navy-900 font-serif mt-1">
+                {myBookings.filter((b) => b.status === 'CONFIRMED').length} Unit{myBookings.filter((b) => b.status === 'CONFIRMED').length !== 1 ? 's' : ''}
+              </p>
             </div>
             <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-amber-50 border border-amber-100 text-amber-600">
               <Building2 className="h-5 w-5" />
@@ -118,7 +164,11 @@ export default function SmartDashboardPage() {
           </div>
           <p className="text-xs text-stone-500 mt-3 flex items-center gap-1.5">
             <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
-            <span>Unit 102 (Storage Locker)</span>
+            <span>
+              {myBookings.length === 0
+                ? 'No active rentals yet'
+                : myBookings[0]?.unitName || 'Verified storage units'}
+            </span>
           </p>
         </Card>
 
@@ -126,9 +176,11 @@ export default function SmartDashboardPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs font-semibold text-stone-500 uppercase tracking-wider">
-                Next Invoice Due
+                Total Paid
               </p>
-              <p className="text-2xl font-bold text-navy-900 font-serif mt-1">₹2,500.00</p>
+              <p className="text-2xl font-bold text-navy-900 font-serif mt-1">
+                ₹{myBookings.reduce((sum, b) => sum + (b.totalAmount || 0), 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+              </p>
             </div>
             <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50 border border-emerald-100 text-emerald-600">
               <CreditCard className="h-5 w-5" />
@@ -136,7 +188,9 @@ export default function SmartDashboardPage() {
           </div>
           <p className="text-xs text-stone-500 mt-3 flex items-center gap-1.5">
             <Clock className="h-3.5 w-3.5 text-amber-600" />
-            <span>Due on Nov 01, 2026</span>
+            <span>
+              {myBookings.length === 0 ? 'No payments yet' : `Across ${myBookings.length} booking${myBookings.length !== 1 ? 's' : ''}`}
+            </span>
           </p>
         </Card>
 
@@ -159,7 +213,7 @@ export default function SmartDashboardPage() {
         </Card>
       </div>
 
-      {/* Active Bookings Section */}
+      {/* My Bookings Section */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div>
@@ -167,7 +221,7 @@ export default function SmartDashboardPage() {
               My Active Bookings &amp; Leases
             </h2>
             <p className="text-xs text-stone-500 mt-0.5">
-              Current storage units allocated to your client account.
+              Storage units you have rented and paid for.
             </p>
           </div>
           <Link href="/storage-spaces">
@@ -178,48 +232,94 @@ export default function SmartDashboardPage() {
           </Link>
         </div>
 
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          <Card className="border-stone-200 bg-white hover:border-amber-400 hover:shadow-md transition-all duration-200">
-            <div className="flex items-center justify-between pb-3 mb-3 border-b border-stone-100">
-              <span className="text-xs font-semibold text-stone-500 uppercase tracking-wider">
-                Unit 102 — Storage Locker
-              </span>
-              <Badge variant="success" className="text-[10px] uppercase font-bold">
-                ACTIVE
-              </Badge>
-            </div>
-            <div className="space-y-2.5 text-xs text-stone-600">
-              <div className="flex justify-between">
-                <span className="text-stone-500">Facility Location:</span>
-                <span className="font-semibold text-navy-900">Sector 42, Metro Hub</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-stone-500">Dimensions:</span>
-                <span className="font-semibold text-navy-900">10ft x 10ft (100 sq ft)</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-stone-500">Lease Period:</span>
-                <span className="font-semibold text-navy-900">Jan 01, 2026 – Dec 31, 2026</span>
-              </div>
-              <div className="flex justify-between pt-1 border-t border-stone-100">
-                <span className="text-stone-500">Monthly Rate:</span>
-                <span className="font-bold text-emerald-700 text-sm">₹2,500.00 / mo</span>
-              </div>
-            </div>
-            <div className="mt-4 pt-3 border-t border-stone-100 flex gap-2">
-              <Link href="/my-payments" className="flex-1">
-                <Button variant="outline" size="sm" className="w-full text-xs font-semibold">
-                  Payment History
-                </Button>
-              </Link>
-              <Link href="/request" className="flex-1">
-                <Button variant="outline" size="sm" className="w-full text-xs font-semibold">
-                  Get Support
-                </Button>
-              </Link>
-            </div>
+        {myBookings.length === 0 ? (
+          <Card className="p-10 text-center border-stone-200 bg-white">
+            <PackageCheck className="mx-auto h-10 w-10 text-stone-300 mb-3" />
+            <h3 className="text-base font-bold text-navy-900">No Bookings Yet</h3>
+            <p className="text-xs text-stone-500 mt-1 mb-4">
+              You haven&apos;t rented any storage spaces. Browse available units to get started.
+            </p>
+            <Link href="/storage-spaces">
+              <Button className="bg-amber-500 hover:bg-amber-600 text-navy-950 font-bold text-xs px-5 py-2.5 rounded-xl">
+                Browse Storage Spaces
+              </Button>
+            </Link>
           </Card>
-        </div>
+        ) : (
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {myBookings.map((booking) => (
+              <Card
+                key={booking.id}
+                className="border-stone-200 bg-white hover:border-amber-400 hover:shadow-md transition-all duration-200 flex flex-col"
+              >
+                <div className="p-5 space-y-3 flex-1">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
+                        {booking.unitType || 'Storage'}
+                      </span>
+                      <h3 className="text-sm font-bold text-navy-900 font-serif mt-1.5 truncate">
+                        {booking.unitName}
+                      </h3>
+                    </div>
+                    <Badge variant="success" className="text-[10px] uppercase font-bold shrink-0">
+                      {booking.status}
+                    </Badge>
+                  </div>
+
+                  <div className="space-y-1.5 text-xs text-stone-600 bg-stone-50 p-3 rounded-lg border border-stone-100">
+                    {booking.location && (
+                      <div className="flex items-center gap-1.5">
+                        <MapPin className="h-3 w-3 text-stone-400 shrink-0" />
+                        <span className="font-medium text-navy-900 truncate">{booking.location}</span>
+                      </div>
+                    )}
+                    {booking.dimensions && (
+                      <div className="flex items-center gap-1.5">
+                        <Layers className="h-3 w-3 text-stone-400 shrink-0" />
+                        <span className="font-medium text-navy-900">{booking.dimensions}</span>
+                      </div>
+                    )}
+                    <div className="flex items-center gap-1.5">
+                      <Calendar className="h-3 w-3 text-stone-400 shrink-0" />
+                      <span>
+                        {formatDate(booking.startDate)} – {formatDate(booking.endDate)}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-between items-baseline pt-1 border-t border-stone-100">
+                    <span className="text-xs text-stone-500">
+                      {booking.durationMonths ? `${booking.durationMonths} Month/s` : 'Monthly'} Rental
+                    </span>
+                    <span className="text-sm font-bold text-emerald-700 font-serif">
+                      ₹{(booking.totalAmount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                    </span>
+                  </div>
+
+                  {booking.transactionId && (
+                    <p className="text-[10px] text-stone-400 font-mono">
+                      TXN: {booking.transactionId}
+                    </p>
+                  )}
+                </div>
+
+                <div className="px-5 pb-4 flex gap-2">
+                  <Link href="/my-payments" className="flex-1">
+                    <Button variant="outline" size="sm" className="w-full text-xs font-semibold">
+                      Payment History
+                    </Button>
+                  </Link>
+                  <Link href="/request" className="flex-1">
+                    <Button variant="outline" size="sm" className="w-full text-xs font-semibold">
+                      Get Support
+                    </Button>
+                  </Link>
+                </div>
+              </Card>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
