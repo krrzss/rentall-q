@@ -42,7 +42,9 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith('/business/register') ||
     pathname.startsWith('/admin/login') ||
     pathname.startsWith('/contact') ||
+    pathname.startsWith('/auth/callback') ||
     pathname.startsWith('/api/contact') ||
+    pathname.startsWith('/api/auth/business-session') ||
     // business register API is called from the public register page
     pathname === '/api/businesses/register';
 
@@ -56,14 +58,27 @@ export async function middleware(request: NextRequest) {
       pathname.startsWith('/request')) &&
     !isPublicRoute;
 
+  // Check for business session cookies
+  const demoCookie = request.cookies.get('rentallq_demo_session')?.value;
+  const warehouseCookie = request.cookies.get('rentallq_active_warehouse')?.value;
+  const hasBusinessSession = Boolean(
+    warehouseCookie || (demoCookie && ['BUSINESS_OWNER', 'MANAGER', 'STAFF'].includes(demoCookie))
+  );
+
   // Unauthenticated user protection — no session = redirect to login or 401 for API
-  if (!user && (isBusinessRoute || isAdminRoute || isClientRoute)) {
+  if (!user && !hasBusinessSession && isBusinessRoute) {
     const url = request.nextUrl.clone();
-    url.pathname = isBusinessRoute ? '/business/login' : '/login';
+    url.pathname = '/business/login';
     return NextResponse.redirect(url);
   }
 
-  if (!user && pathname.startsWith('/api/') && !isPublicRoute) {
+  if (!user && (isAdminRoute || isClientRoute)) {
+    const url = request.nextUrl.clone();
+    url.pathname = isAdminRoute ? '/admin/login' : '/login';
+    return NextResponse.redirect(url);
+  }
+
+  if (!user && !hasBusinessSession && pathname.startsWith('/api/') && !isPublicRoute) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 

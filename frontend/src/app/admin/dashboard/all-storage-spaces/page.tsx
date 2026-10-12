@@ -64,6 +64,8 @@ const mockAdminUnits: StorageUnitAdmin[] = [
   },
 ];
 
+import { createClient } from '@/server/lib/supabaseClient';
+
 export default function AdminStorageSpacesPage() {
   const [units, setUnits] = useState<StorageUnitAdmin[]>([]);
   const [loading, setLoading] = useState(true);
@@ -72,6 +74,37 @@ export default function AdminStorageSpacesPage() {
   useEffect(() => {
     async function loadUnits() {
       try {
+        const supabase = createClient();
+
+        // 1. Fetch real rental units from database
+        const { data: dbUnits } = await supabase
+          .from('rental_units')
+          .select('id, name, type, description, base_price, status, business_id');
+
+        // Fetch businesses for provider name
+        const { data: businesses } = await supabase
+          .from('businesses')
+          .select('id, name');
+
+        const businessMap = new Map((businesses || []).map((b) => [b.id, b.name]));
+
+        if (dbUnits && dbUnits.length > 0) {
+          setUnits(
+            dbUnits.map((u, i) => ({
+              id: u.id,
+              name: u.name || `Unit #${i + 1}`,
+              type: u.type || 'Self Storage',
+              businessName: (u.business_id && businessMap.get(u.business_id)) || 'Default Business',
+              basePrice: Number(u.base_price || 150),
+              status: u.status || 'AVAILABLE',
+              dimensions: '10ft x 10ft',
+            }))
+          );
+          setLoading(false);
+          return;
+        }
+
+        // 2. Check /api/rental-units
         const res = await fetch('/api/rental-units');
         if (res.ok) {
           const data = await res.json();
@@ -81,20 +114,21 @@ export default function AdminStorageSpacesPage() {
                 id: u.id || `unit-${i}`,
                 name: u.name || u.title || `Storage Unit #${i + 1}`,
                 type: u.type || 'Self Storage',
-                businessName: u.businessName || 'Metro Storage Solutions',
-                basePrice: Number(u.basePrice || u.base_price || 120),
+                businessName: u.businessName || 'Default Business',
+                basePrice: Number(u.basePrice || u.base_price || 150),
                 status: u.status || 'AVAILABLE',
                 dimensions: u.dimensions || '10ft x 10ft',
               }))
             );
-          } else {
-            setUnits(mockAdminUnits);
+            setLoading(false);
+            return;
           }
-        } else {
-          setUnits(mockAdminUnits);
         }
+
+        setUnits([]);
       } catch (err) {
-        setUnits(mockAdminUnits);
+        console.error('Failed to load storage units', err);
+        setUnits([]);
       } finally {
         setLoading(false);
       }

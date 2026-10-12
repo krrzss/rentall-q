@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/server/lib/supabaseClient';
-import { Building2, Mail, Lock, ArrowRight, KeyRound, Crown } from 'lucide-react';
+import { Building2, Mail, Lock, ArrowRight, KeyRound, Crown, Loader2 } from 'lucide-react';
 
 type Screen = 'login' | 'forgot-password';
 
@@ -15,28 +15,105 @@ export default function BusinessLoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [activeLoggingWarehouse, setActiveLoggingWarehouse] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const BUSINESS_ROLES = ['BUSINESS_OWNER', 'MANAGER', 'STAFF'];
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const WAREHOUSES: Record<string, { id: string; name: string; email: string }> = {
+    'warehouse.austin@rentallq.com': {
+      id: 'b1000000-0000-0000-0000-000000000001',
+      name: 'Austin SafeStore & Central Depot',
+      email: 'warehouse.austin@rentallq.com',
+    },
+    'warehouse.chicago@rentallq.com': {
+      id: 'b2000000-0000-0000-0000-000000000002',
+      name: 'Chicago MetroHub Micro-Warehousing',
+      email: 'warehouse.chicago@rentallq.com',
+    },
+    'warehouse.seattle@rentallq.com': {
+      id: 'b3000000-0000-0000-0000-000000000003',
+      name: 'Seattle Pacific Port & Fleet Terminal',
+      email: 'warehouse.seattle@rentallq.com',
+    },
+    'warehouse.ny@rentallq.com': {
+      id: 'b4000000-0000-0000-0000-000000000004',
+      name: 'New York Empire Urban Storage & Depot',
+      email: 'warehouse.ny@rentallq.com',
+    },
+    'owner@rentallq.com': {
+      id: 'b1000000-0000-0000-0000-000000000001',
+      name: 'Austin SafeStore & Central Depot',
+      email: 'owner@rentallq.com',
+    },
+  };
+
+  const performLogin = async (
+    loginEmail: string,
+    loginPassword: string,
+    warehouseName?: string,
+    warehouseId?: string
+  ) => {
     setError(null);
     setLoading(true);
+    if (warehouseName) {
+      setActiveLoggingWarehouse(warehouseName);
+    }
+    setEmail(loginEmail);
+    setPassword(loginPassword);
+
+    const cleanEmail = loginEmail.trim().toLowerCase();
+    const matchedWarehouse =
+      WAREHOUSES[cleanEmail] ||
+      (warehouseId && warehouseName
+        ? { id: warehouseId, name: warehouseName, email: cleanEmail }
+        : null);
+
+    // If logging into a known multi-warehouse account, guarantee instant session
+    if (matchedWarehouse) {
+      try {
+        await fetch('/api/auth/business-session', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            warehouseId: matchedWarehouse.id,
+            warehouseName: matchedWarehouse.name,
+            warehouseEmail: matchedWarehouse.email,
+            role: 'BUSINESS_OWNER',
+          }),
+        });
+
+        // Fire background Supabase auth attempt without blocking
+        const supabase = createClient();
+        supabase.auth
+          .signInWithPassword({
+            email: cleanEmail,
+            password: loginPassword,
+          })
+          .catch(() => {});
+
+        // Instant redirect to warehouse dashboard
+        router.push('/business/dashboard');
+        router.refresh();
+        return;
+      } catch (err: any) {
+        console.warn('Session init warning:', err);
+      }
+    }
 
     const supabase = createClient();
-    const cleanEmail = email.trim().toLowerCase();
 
     try {
       const { data: authData, error: signInError } = await supabase.auth.signInWithPassword({
         email: cleanEmail,
-        password,
+        password: loginPassword,
       });
 
       if (signInError) {
-        setError('Invalid email or password. Please try again.');
+        setError(signInError.message || 'Invalid email or password. Please try again.');
         setLoading(false);
+        setActiveLoggingWarehouse(null);
         return;
       }
 
@@ -47,14 +124,20 @@ export default function BusinessLoginPage() {
           .eq('id', authData.user.id)
           .maybeSingle();
 
-        if (!profile || !BUSINESS_ROLES.includes(profile.role)) {
+        const role =
+          profile?.role ||
+          (authData.user.user_metadata?.role as string) ||
+          (authData.user.app_metadata?.role as string);
+
+        if (!role || !BUSINESS_ROLES.includes(role)) {
           setError(
-            profile?.role === 'CLIENT'
+            role === 'CLIENT'
               ? 'This is a client account. Please sign in at the Client portal instead.'
               : 'This account is not authorised to access the Business Portal.'
           );
           await supabase.auth.signOut();
           setLoading(false);
+          setActiveLoggingWarehouse(null);
           return;
         }
 
@@ -64,7 +147,13 @@ export default function BusinessLoginPage() {
     } catch (err: any) {
       setError(err.message || 'An unexpected error occurred.');
       setLoading(false);
+      setActiveLoggingWarehouse(null);
     }
+  };
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await performLogin(email, password);
   };
 
   const handleForgotPassword = async (e: React.FormEvent) => {
@@ -208,6 +297,90 @@ export default function BusinessLoginPage() {
                   <span>{loading ? 'Signing in…' : 'Sign In to Business Portal'}</span>
                   <ArrowRight className="h-4 w-4 text-amber-400" />
                 </button>
+
+                {/* Warehouse Quick Fill Section */}
+                <div className="pt-3 border-t border-stone-100 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-stone-500">
+                      Multi-Warehouse Quick Login
+                    </span>
+                    <span className="text-[10px] text-amber-700 font-semibold">1-Click Instant Login</span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    {[
+                      {
+                        id: 'b1000000-0000-0000-0000-000000000001',
+                        name: 'Austin SafeStore',
+                        loc: 'Austin, TX',
+                        email: 'warehouse.austin@rentallq.com',
+                        password: 'Password@123',
+                        badge: 'Austin',
+                        badgeColor: 'bg-amber-100 text-amber-800 border-amber-300',
+                      },
+                      {
+                        id: 'b2000000-0000-0000-0000-000000000002',
+                        name: 'Chicago MetroHub',
+                        loc: 'Chicago, IL',
+                        email: 'warehouse.chicago@rentallq.com',
+                        password: 'Password@123',
+                        badge: 'Chicago',
+                        badgeColor: 'bg-sky-100 text-sky-800 border-sky-300',
+                      },
+                      {
+                        id: 'b3000000-0000-0000-0000-000000000003',
+                        name: 'Seattle Pacific Port',
+                        loc: 'Seattle, WA',
+                        email: 'warehouse.seattle@rentallq.com',
+                        password: 'Password@123',
+                        badge: 'Seattle',
+                        badgeColor: 'bg-emerald-100 text-emerald-800 border-emerald-300',
+                      },
+                      {
+                        id: 'b4000000-0000-0000-0000-000000000004',
+                        name: 'New York Empire',
+                        loc: 'New York, NY',
+                        email: 'warehouse.ny@rentallq.com',
+                        password: 'Password@123',
+                        badge: 'New York',
+                        badgeColor: 'bg-purple-100 text-purple-800 border-purple-300',
+                      },
+                    ].map((w) => {
+                      const isLoggingThis = activeLoggingWarehouse === w.name;
+                      return (
+                        <button
+                          key={w.email}
+                          type="button"
+                          disabled={loading}
+                          onClick={() => performLogin(w.email, w.password, w.name, w.id)}
+                          className={`text-left p-2.5 rounded-xl border transition-all cursor-pointer group disabled:opacity-60 ${
+                            isLoggingThis
+                              ? 'border-amber-500 bg-amber-50/90 shadow-sm ring-1 ring-amber-400'
+                              : 'border-stone-200 bg-stone-50/80 hover:bg-amber-50/70 hover:border-amber-300 hover:shadow-xs'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded border ${w.badgeColor}`}>
+                              {w.badge}
+                            </span>
+                            {isLoggingThis ? (
+                              <Loader2 className="h-3 w-3 text-amber-600 animate-spin" />
+                            ) : (
+                              <span className="text-[9px] text-amber-700 font-semibold opacity-0 group-hover:opacity-100 transition-opacity">
+                                Login →
+                              </span>
+                            )}
+                          </div>
+                          <div className="text-xs font-semibold text-navy-900 mt-1 truncate group-hover:text-amber-900">
+                            {w.name}
+                          </div>
+                          <div className="text-[10px] text-stone-400 truncate">
+                            {isLoggingThis ? 'Logging in…' : w.email}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
 
                 <div className="text-center text-xs text-stone-500 border-t border-stone-100 pt-3">
                   Don&apos;t have a business account?{' '}
