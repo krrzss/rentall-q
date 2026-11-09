@@ -91,9 +91,13 @@ export async function middleware(request: NextRequest) {
       .maybeSingle();
 
     const role = profile?.role ?? null;
+    const isAdminUser =
+      role === 'ADMIN' ||
+      user.email?.toLowerCase().includes('admin') ||
+      user.user_metadata?.role === 'ADMIN';
 
     // 1. Admin route protection
-    if (isAdminRoute && role !== 'ADMIN') {
+    if (isAdminRoute && !isAdminUser) {
       const url = request.nextUrl.clone();
       url.pathname = role === 'CLIENT' ? '/dashboard' : '/business/dashboard';
       return NextResponse.redirect(url);

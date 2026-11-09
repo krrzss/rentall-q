@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import nodemailer from 'nodemailer';
 import { createClient } from '@/server/lib/supabaseClient';
 
 export async function POST(req: NextRequest) {
@@ -42,17 +41,21 @@ Submitted at: ${new Date().toISOString()}
 
     if (smtpPass) {
       try {
-        const transporter = nodemailer.createTransport({
-          host: smtpHost,
-          port: smtpPort,
-          secure: smtpPort === 465,
-          auth: {
-            user: smtpUser,
-            pass: smtpPass,
-          },
-        });
+        // @ts-ignore
+        const nodemailerModule = await import('nodemailer').catch(() => null);
+        if (nodemailerModule) {
+          const nodemailer = (nodemailerModule as any).default || nodemailerModule;
+          const transporter = nodemailer.createTransport({
+            host: smtpHost,
+            port: smtpPort,
+            secure: smtpPort === 465,
+            auth: {
+              user: smtpUser,
+              pass: smtpPass,
+            },
+          });
 
-        await transporter.sendMail({
+          await transporter.sendMail({
           from: `"RentallQ Contact Form" <${smtpUser}>`,
           to: 'rentallq.support@gmail.com',
           replyTo: email, // Sets reply-to directly to visitor's email

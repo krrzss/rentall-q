@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { createClient } from '@/server/lib/supabaseClient';
 import { LogOut } from 'lucide-react';
 
@@ -13,6 +13,7 @@ interface UserProfile {
 
 export function Navbar() {
   const router = useRouter();
+  const pathname = usePathname();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -25,6 +26,23 @@ export function Navbar() {
         } = await supabase.auth.getUser();
 
         if (!user) {
+          // Check for active warehouse cookie session (Quick-login / Business session)
+          try {
+            const sessionRes = await fetch('/api/auth/business-session');
+            const sessionJson = await sessionRes.json();
+            if (sessionJson.success && sessionJson.warehouse) {
+              setProfile({
+                name: sessionJson.warehouse.name || 'Warehouse Operations',
+                role: sessionJson.warehouse.role || 'BUSINESS_OWNER',
+                email: sessionJson.warehouse.email || 'operator@rentallq.com',
+              });
+              setLoading(false);
+              return;
+            }
+          } catch {
+            // fallback
+          }
+
           setLoading(false);
           return;
         }
@@ -66,7 +84,25 @@ export function Navbar() {
     } catch (err) {
       console.warn('Sign out error', err);
     }
-    window.location.href = '/login';
+
+    try {
+      await fetch('/api/auth/business-session', { method: 'DELETE' });
+    } catch (err) {
+      console.warn('Business session clear error', err);
+    }
+
+    if (typeof document !== 'undefined') {
+      document.cookie = 'rentallq_demo_session=; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT;';
+      document.cookie = 'rentallq_active_warehouse=; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT;';
+    }
+
+    if (pathname?.startsWith('/admin')) {
+      window.location.href = '/admin/login';
+    } else if (pathname?.startsWith('/business')) {
+      window.location.href = '/business/login';
+    } else {
+      window.location.href = '/login';
+    }
   };
 
   const getInitials = (name: string) => {
@@ -81,7 +117,11 @@ export function Navbar() {
     <header className="flex h-16 items-center justify-between border-b border-stone-200 bg-white px-6 text-navy-900 shadow-xs">
       <div className="flex items-center gap-2">
         <span className="text-xs font-semibold uppercase tracking-wider text-stone-400">
-          Management Portal
+          {pathname?.startsWith('/admin')
+            ? 'Super Admin Portal'
+            : pathname?.startsWith('/business')
+            ? 'Operational Command Center'
+            : 'Client Portal'}
         </span>
       </div>
 
