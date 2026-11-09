@@ -64,8 +64,7 @@ export default function AdminLoginPage() {
           }
         }
 
-        router.push('/admin/dashboard');
-        router.refresh();
+        window.location.href = '/admin/dashboard';
       }
     } catch (err: any) {
       setError(err.message || 'An unexpected error occurred.');

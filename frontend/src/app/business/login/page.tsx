@@ -73,6 +73,34 @@ export default function BusinessLoginPage() {
     // If logging into a known multi-warehouse account, guarantee instant session
     if (matchedWarehouse) {
       try {
+        // 1. Clear any previous Supabase auth session from memory & network
+        const supabase = createClient();
+        await supabase.auth.signOut().catch(() => {});
+
+        // 2. Synchronously write warehouse session cookies to the browser
+        if (typeof document !== 'undefined') {
+          // Clear any conflicting client tokens
+          document.cookie.split(';').forEach((c) => {
+            const name = c.split('=')[0].trim();
+            if (name.startsWith('sb-') || name.includes('auth-token')) {
+              document.cookie = `${name}=; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT;`;
+            }
+          });
+
+          // Set active warehouse cookies with wide path
+          const warehousePayload = encodeURIComponent(
+            JSON.stringify({
+              id: matchedWarehouse.id,
+              name: matchedWarehouse.name,
+              email: matchedWarehouse.email,
+              role: 'BUSINESS_OWNER',
+            })
+          );
+          document.cookie = `rentallq_active_warehouse=${warehousePayload}; path=/; max-age=604800; SameSite=Lax;`;
+          document.cookie = `rentallq_demo_session=BUSINESS_OWNER; path=/; max-age=604800; SameSite=Lax;`;
+        }
+
+        // 3. Post to API to mirror on server
         await fetch('/api/auth/business-session', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -84,18 +112,8 @@ export default function BusinessLoginPage() {
           }),
         });
 
-        // Fire background Supabase auth attempt without blocking
-        const supabase = createClient();
-        supabase.auth
-          .signInWithPassword({
-            email: cleanEmail,
-            password: loginPassword,
-          })
-          .catch(() => {});
-
-        // Instant redirect to warehouse dashboard
-        router.push('/business/dashboard');
-        router.refresh();
+        // 4. Instant redirect to warehouse dashboard
+        window.location.href = '/business/dashboard';
         return;
       } catch (err: any) {
         console.warn('Session init warning:', err);
@@ -120,7 +138,7 @@ export default function BusinessLoginPage() {
       if (authData.user) {
         const { data: profile } = await supabase
           .from('profiles')
-          .select('role')
+          .select('role, business_id')
           .eq('id', authData.user.id)
           .maybeSingle();
 
@@ -141,8 +159,36 @@ export default function BusinessLoginPage() {
           return;
         }
 
-        router.push('/business/dashboard');
-        router.refresh();
+        const effectiveBizId = profile?.business_id || 'b1000000-0000-0000-0000-000000000001';
+        const effectiveBizName = authData.user.user_metadata?.name || 'Business Facility';
+
+        // Synchronously write cookies to document.cookie
+        if (typeof document !== 'undefined') {
+          const warehousePayload = encodeURIComponent(
+            JSON.stringify({
+              id: effectiveBizId,
+              name: effectiveBizName,
+              email: cleanEmail,
+              role: role,
+            })
+          );
+          document.cookie = `rentallq_active_warehouse=${warehousePayload}; path=/; max-age=604800; SameSite=Lax;`;
+          document.cookie = `rentallq_demo_session=${role}; path=/; max-age=604800; SameSite=Lax;`;
+        }
+
+        // Establish business session cookie on server
+        await fetch('/api/auth/business-session', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            warehouseId: effectiveBizId,
+            warehouseName: effectiveBizName,
+            warehouseEmail: cleanEmail,
+            role: role,
+          }),
+        }).catch(() => {});
+
+        window.location.href = '/business/dashboard';
       }
     } catch (err: any) {
       setError(err.message || 'An unexpected error occurred.');

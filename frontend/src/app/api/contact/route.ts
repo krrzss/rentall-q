@@ -85,6 +85,7 @@ Submitted at: ${new Date().toISOString()}
         });
         emailSent = true;
         emailMethod = 'smtp';
+        }
       } catch (err: any) {
         console.error('SMTP Email sending error:', err);
       }

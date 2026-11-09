@@ -45,7 +45,6 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith('/auth/callback') ||
     pathname.startsWith('/api/contact') ||
     pathname.startsWith('/api/auth/business-session') ||
-    // business register API is called from the public register page
     pathname === '/api/businesses/register';
 
   // Protected route definitions
@@ -65,75 +64,98 @@ export async function middleware(request: NextRequest) {
     warehouseCookie || (demoCookie && ['BUSINESS_OWNER', 'MANAGER', 'STAFF'].includes(demoCookie))
   );
 
-  // Unauthenticated user protection — no session = redirect to login or 401 for API
-  if (!user && !hasBusinessSession && isBusinessRoute) {
+  // 1. BUSINESS PORTAL ISOLATION:
+  // Business routes (/business/*) must NEVER redirect to the client portal (/dashboard).
+  if (isBusinessRoute) {
+    // A. Active multi-warehouse business session cookie -> allow immediately
+    if (hasBusinessSession) {
+      return supabaseResponse;
+    }
+
+    // B. Check if Supabase authenticated user has a business role
+    if (user) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      const role = profile?.role ?? null;
+      if (role && ['BUSINESS_OWNER', 'MANAGER', 'STAFF'].includes(role)) {
+        // Staff role restrictions (No reports, settings, billing)
+        if (role === 'STAFF') {
+          if (
+            pathname.startsWith('/business/reports') ||
+            pathname.startsWith('/business/settings') ||
+            pathname.startsWith('/business/billing')
+          ) {
+            const url = request.nextUrl.clone();
+            url.pathname = '/business/dashboard';
+            return NextResponse.redirect(url);
+          }
+        }
+
+        // Manager role restrictions (No billing / subscription settings)
+        if (role === 'MANAGER') {
+          if (
+            pathname.startsWith('/business/settings') ||
+            pathname.startsWith('/business/billing')
+          ) {
+            const url = request.nextUrl.clone();
+            url.pathname = '/business/dashboard';
+            return NextResponse.redirect(url);
+          }
+        }
+
+        return supabaseResponse;
+      }
+    }
+
+    // C. Not authenticated for business -> redirect to /business/login (NEVER /dashboard!)
     const url = request.nextUrl.clone();
     url.pathname = '/business/login';
     return NextResponse.redirect(url);
   }
 
-  if (!user && (isAdminRoute || isClientRoute)) {
+  // 2. ADMIN PORTAL ISOLATION:
+  // Admin dashboard routes (/admin/dashboard/*) must only be accessible to Admins
+  if (isAdminRoute) {
+    if (user) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      const role = profile?.role ?? null;
+      const isAdminUser =
+        role === 'ADMIN' ||
+        user.email?.toLowerCase().includes('admin') ||
+        user.user_metadata?.role === 'ADMIN';
+
+      if (isAdminUser) {
+        return supabaseResponse;
+      }
+    }
+
     const url = request.nextUrl.clone();
-    url.pathname = isAdminRoute ? '/admin/login' : '/login';
+    url.pathname = '/admin/login';
     return NextResponse.redirect(url);
   }
 
-  if (!user && !hasBusinessSession && pathname.startsWith('/api/') && !isPublicRoute) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  // 3. CLIENT PORTAL ISOLATION:
+  // Client routes require an authenticated user
+  if (isClientRoute) {
+    if (!user) {
+      const url = request.nextUrl.clone();
+      url.pathname = '/login';
+      return NextResponse.redirect(url);
+    }
   }
 
-  // Role-based protection for authenticated users
-  if (user) {
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .maybeSingle();
-
-    const role = profile?.role ?? null;
-    const isAdminUser =
-      role === 'ADMIN' ||
-      user.email?.toLowerCase().includes('admin') ||
-      user.user_metadata?.role === 'ADMIN';
-
-    // 1. Admin route protection
-    if (isAdminRoute && !isAdminUser) {
-      const url = request.nextUrl.clone();
-      url.pathname = role === 'CLIENT' ? '/dashboard' : '/business/dashboard';
-      return NextResponse.redirect(url);
-    }
-
-    // 2. Client role attempting to access business portal
-    if (isBusinessRoute && role === 'CLIENT') {
-      const url = request.nextUrl.clone();
-      url.pathname = '/dashboard';
-      return NextResponse.redirect(url);
-    }
-
-    // 3. Staff role restrictions (No reports, settings, billing)
-    if (role === 'STAFF') {
-      if (
-        pathname.startsWith('/business/reports') ||
-        pathname.startsWith('/business/settings') ||
-        pathname.startsWith('/business/billing')
-      ) {
-        const url = request.nextUrl.clone();
-        url.pathname = '/business/dashboard';
-        return NextResponse.redirect(url);
-      }
-    }
-
-    // 4. Manager role restrictions (No billing / subscription settings)
-    if (role === 'MANAGER') {
-      if (
-        pathname.startsWith('/business/settings') ||
-        pathname.startsWith('/business/billing')
-      ) {
-        const url = request.nextUrl.clone();
-        url.pathname = '/business/dashboard';
-        return NextResponse.redirect(url);
-      }
-    }
+  // 4. API Route protection
+  if (!user && !hasBusinessSession && pathname.startsWith('/api/') && !isPublicRoute) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   return supabaseResponse;

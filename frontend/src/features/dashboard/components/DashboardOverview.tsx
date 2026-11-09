@@ -100,7 +100,13 @@ export function DashboardOverview() {
 
         let effectiveBizId = activeWarehouseData?.id;
 
-        if (user) {
+        if (activeWarehouseData) {
+          setUserName(activeWarehouseData.name.split(' ')[0] || 'Warehouse Manager');
+          setUserRole((activeWarehouseData.role as any) || 'BUSINESS_OWNER');
+          setBusinessName(activeWarehouseData.name);
+          setBusinessId(activeWarehouseData.id);
+          effectiveBizId = activeWarehouseData.id;
+        } else if (user) {
           const name = user.user_metadata?.name || user.email?.split('@')[0] || 'User';
           setUserName(name);
 
@@ -117,11 +123,6 @@ export function DashboardOverview() {
           if (profile?.business_id) {
             effectiveBizId = profile.business_id;
           }
-        } else if (activeWarehouseData) {
-          setUserName(activeWarehouseData.name.split(' ')[0] || 'Warehouse Manager');
-          setUserRole((activeWarehouseData.role as any) || 'BUSINESS_OWNER');
-          setBusinessName(activeWarehouseData.name);
-          setBusinessId(activeWarehouseData.id);
         }
 
         if (effectiveBizId) {

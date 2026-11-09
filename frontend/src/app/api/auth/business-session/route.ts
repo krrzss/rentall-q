@@ -27,6 +27,13 @@ export async function POST(request: NextRequest) {
     response.cookies.set('rentallq_active_warehouse', JSON.stringify(warehouseData), cookieOptions);
     response.cookies.set('rentallq_demo_session', role, cookieOptions);
 
+    // Clear any leftover client Supabase session tokens to isolate the business session
+    for (const cookie of request.cookies.getAll()) {
+      if (cookie.name.startsWith('sb-')) {
+        response.cookies.delete(cookie.name);
+      }
+    }
+
     return response;
   } catch (err: any) {
     return NextResponse.json({ error: err.message || 'Invalid request' }, { status: 400 });
@@ -40,10 +47,15 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const warehouse = JSON.parse(cookie);
+    const warehouse = JSON.parse(decodeURIComponent(cookie));
     return NextResponse.json({ success: true, warehouse });
   } catch {
-    return NextResponse.json({ success: false, warehouse: null });
+    try {
+      const warehouse = JSON.parse(cookie);
+      return NextResponse.json({ success: true, warehouse });
+    } catch {
+      return NextResponse.json({ success: false, warehouse: null });
+    }
   }
 }
 

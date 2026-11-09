@@ -22,6 +22,7 @@ import {
   ChevronDown,
   ChevronUp,
   User,
+  BrainCircuit,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/server/lib/supabaseClient';
@@ -48,6 +49,70 @@ interface Company {
   units: StorageUnit[];
 }
 
+export interface AIRecommendation {
+  query: string;
+  recommendedType: string;
+  recommendedSize: string;
+  title: string;
+  reasoning: string;
+  features: string[];
+}
+
+const AI_STORAGE_PRESETS = [
+  {
+    id: 'bhk',
+    label: '🛋️ 1-2 BHK Household',
+    query: '1-2 BHK apartment furniture, sofa set, bed, appliances, cartons',
+    rec: {
+      query: '1-2 BHK apartment furniture, sofa set, bed, appliances, cartons',
+      recommendedType: 'Climate Controlled',
+      recommendedSize: '10x10',
+      title: '10x10 Climate-Controlled Storage Space',
+      reasoning: 'Comfortably accommodates 1-2 BHK apartment furnishings (mattress, sofa set, refrigerator, washing machine, and 15-20 boxes). Climate control is essential to prevent humidity and temperature damage on upholstery and electronics.',
+      features: ['Climate Controlled', 'Ground Access', 'Electronic Keypad', '24/7 Monitoring'],
+    },
+  },
+  {
+    id: 'student',
+    label: '📦 Student / Moving Cartons',
+    query: 'Student dorm items, 6-8 suitcases, study desk, books, winter wear',
+    rec: {
+      query: 'Student dorm items, 6-8 suitcases, study desk, books, winter wear',
+      recommendedType: 'Locker',
+      recommendedSize: '5x5',
+      title: '5x5 Compact Secure Locker',
+      reasoning: 'Perfect budget-friendly unit for 6-10 cartons, extra luggage, and study materials. High security electronic keypad and easy ground-floor access for quick move-in.',
+      features: ['Compact 25 sq ft', 'Digital Keypad Lock', 'Cost Effective', 'Ground Floor Access'],
+    },
+  },
+  {
+    id: 'vehicle',
+    label: '🏍️ Vehicle / Motorcycle Parking',
+    query: 'Motorcycle, vehicle parts, sports sedan, parking bay',
+    rec: {
+      query: 'Motorcycle, vehicle parts, sports sedan, parking bay',
+      recommendedType: 'Drive-Up',
+      recommendedSize: '10x20',
+      title: 'Dedicated Vehicle / Drive-Up Bay',
+      reasoning: 'Spacious ground-level bay featuring 24/7 drive-up access, perimeter security, and CCTV monitoring. Safe for classic cars, bikes, and fleet vehicles.',
+      features: ['24/7 Vehicle Gate', 'Wide Driveway', 'CCTV Oversight', 'Motion Sensors'],
+    },
+  },
+  {
+    id: 'business',
+    label: '🏢 Business Inventory & Pallets',
+    query: 'Retail stock, merchandise boxes, pallet staging, archives',
+    rec: {
+      query: 'Retail stock, merchandise boxes, pallet staging, archives',
+      recommendedType: 'Warehouse',
+      recommendedSize: '15x20',
+      title: 'Commercial Micro-Warehouse Space',
+      reasoning: 'High-clearance commercial space with loading dock access, heavy floor capacity, and rapid dispatch logistics for local e-commerce and retail stock.',
+      features: ['Loading Dock Access', 'Heavy Floor Load', 'Commercial Staging', 'Industrial Shutter'],
+    },
+  },
+];
+
 export default function StorageSpacesMarketplace() {
   const router = useRouter();
   const [companies, setCompanies] = useState<Company[]>([]);
@@ -57,6 +122,11 @@ export default function StorageSpacesMarketplace() {
   const [selectedType, setSelectedType] = useState('ALL');
   const [expandedCompanies, setExpandedCompanies] = useState<Set<string>>(new Set());
   const [currentUser, setCurrentUser] = useState<{ id: string; name: string; email: string } | null>(null);
+
+  // AI Space Matcher State
+  const [aiInputText, setAiInputText] = useState('');
+  const [activeAiRec, setActiveAiRec] = useState<AIRecommendation | null>(null);
+  const [filterOnlyAiMatch, setFilterOnlyAiMatch] = useState(false);
 
   // Checkout / Payment Modal state
   const [selectedUnit, setSelectedUnit] = useState<StorageUnit | null>(null);
@@ -124,6 +194,99 @@ export default function StorageSpacesMarketplace() {
     loadData();
   }, []);
 
+  const isUnitAiMatch = (u: StorageUnit) => {
+    if (!activeAiRec) return false;
+    const recType = activeAiRec.recommendedType.toLowerCase();
+    const recSize = activeAiRec.recommendedSize.toLowerCase();
+    const uType = u.type.toLowerCase();
+    const uName = u.name.toLowerCase();
+    const uDesc = u.description.toLowerCase();
+    const uDim = (u.dimensions || '').toLowerCase();
+
+    return (
+      uType.includes(recType) ||
+      uName.includes(recType) ||
+      uDesc.includes(recType) ||
+      uDim.includes(recSize) ||
+      (recType === 'climate controlled' && (uDesc.includes('climate') || uType.includes('climate'))) ||
+      (recType === 'drive-up' && (uDesc.includes('drive') || uType.includes('parking') || uType.includes('drive')))
+    );
+  };
+
+  const handleAiRecommend = (text: string) => {
+    const q = text.toLowerCase().trim();
+    setAiInputText(text);
+
+    if (!q) {
+      setActiveAiRec(null);
+      setFilterOnlyAiMatch(false);
+      return;
+    }
+
+    if (
+      q.includes('vehicle') ||
+      q.includes('car') ||
+      q.includes('bike') ||
+      q.includes('motorcycle') ||
+      q.includes('parking') ||
+      q.includes('sedan') ||
+      q.includes('suv')
+    ) {
+      setActiveAiRec(AI_STORAGE_PRESETS[2].rec);
+    } else if (
+      q.includes('inventory') ||
+      q.includes('pallet') ||
+      q.includes('warehouse') ||
+      q.includes('merchandise') ||
+      q.includes('stock') ||
+      q.includes('commercial') ||
+      q.includes('wholesale')
+    ) {
+      setActiveAiRec(AI_STORAGE_PRESETS[3].rec);
+    } else if (
+      q.includes('student') ||
+      q.includes('dorm') ||
+      q.includes('carton') ||
+      q.includes('luggage') ||
+      q.includes('suitcase') ||
+      q.includes('books') ||
+      q.includes('clothes') ||
+      q.includes('minimal')
+    ) {
+      setActiveAiRec(AI_STORAGE_PRESETS[1].rec);
+    } else {
+      const needsClimate =
+        q.includes('electronic') ||
+        q.includes('tv') ||
+        q.includes('computer') ||
+        q.includes('wood') ||
+        q.includes('furniture') ||
+        q.includes('bed') ||
+        q.includes('mattress') ||
+        q.includes('appliance');
+
+      setActiveAiRec({
+        query: text,
+        recommendedType: needsClimate ? 'Climate Controlled' : 'Self Storage',
+        recommendedSize: '10x10',
+        title: needsClimate
+          ? '10x10 Climate-Controlled Space (100 sq ft)'
+          : '10x10 Standard Self Storage Unit (100 sq ft)',
+        reasoning: `Based on your items ("${text}"), our AI model recommends approximately 100 sq ft (10x10). ${
+          needsClimate
+            ? 'Climate regulation is strongly recommended to protect wooden furniture, appliances, and fabrics against seasonal moisture and heat.'
+            : 'Spacious multi-purpose unit with round-the-clock keypad entry.'
+        }`,
+        features: [
+          needsClimate ? 'Climate Controlled' : 'Standard Ventilation',
+          'Drive-Up Access',
+          'Digital Keypad Gate',
+          'Individual Unit Alarm',
+        ],
+      });
+    }
+  };
+
   const filteredCompanies = companies
     .filter((company) => selectedCompanyId === 'ALL' || company.id === selectedCompanyId)
     .map((company) => ({
@@ -136,7 +299,8 @@ export default function StorageSpacesMarketplace() {
           (u.location && u.location.toLowerCase().includes(searchTerm.toLowerCase()));
         const matchesType =
           selectedType === 'ALL' || u.type.toLowerCase().includes(selectedType.toLowerCase());
-        return matchesSearch && matchesType;
+        const matchesAiFilter = !filterOnlyAiMatch || isUnitAiMatch(u);
+        return matchesSearch && matchesType && matchesAiFilter;
       }),
     }))
     .filter((c) => c.units.length > 0);
@@ -335,6 +499,136 @@ export default function StorageSpacesMarketplace() {
           <div className="absolute top-6 right-6 flex items-center gap-2 bg-white/10 border border-white/20 px-3 py-1.5 rounded-full text-xs text-white font-medium">
             <User className="h-3.5 w-3.5 text-amber-300" />
             <span>Client: <strong className="text-amber-300">{currentUser.name}</strong></span>
+          </div>
+        )}
+      </div>
+
+      {/* AI SMART SPACE RECOMMENDER */}
+      <div className="rounded-2xl border border-amber-300/80 bg-gradient-to-br from-amber-50/70 via-cream-50 to-white p-6 shadow-xs space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-navy-900 text-amber-400 shadow-xs">
+              <BrainCircuit className="h-5 w-5" />
+            </div>
+            <div>
+              <div className="inline-flex items-center gap-1.5 text-[11px] font-bold text-amber-800 uppercase tracking-wider">
+                <Sparkles className="h-3.5 w-3.5 text-amber-600" />
+                <span>AI Storage Space Matcher</span>
+              </div>
+              <h2 className="text-base font-bold text-navy-900 font-serif leading-tight">
+                Not sure which size fits your items? Ask our AI
+              </h2>
+            </div>
+          </div>
+
+          {activeAiRec && (
+            <button
+              onClick={() => {
+                setActiveAiRec(null);
+                setFilterOnlyAiMatch(false);
+                setAiInputText('');
+              }}
+              className="text-xs text-stone-500 hover:text-navy-900 font-semibold underline self-start sm:self-auto cursor-pointer"
+            >
+              Clear AI Advice &times;
+            </button>
+          )}
+        </div>
+
+        {/* Input & Quick Presets */}
+        <div className="space-y-3">
+          <div className="flex flex-col sm:flex-row gap-2">
+            <div className="relative flex-1">
+              <input
+                type="text"
+                placeholder='e.g., "1 BHK flat furniture, washing machine, and 12 cartons" or "motorcycle"...'
+                value={aiInputText}
+                onChange={(e) => setAiInputText(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handleAiRecommend(aiInputText);
+                  }
+                }}
+                className="w-full pl-4 pr-10 py-2.5 text-sm bg-white border border-stone-300 rounded-xl focus:outline-hidden focus:ring-2 focus:ring-amber-500 text-navy-900 placeholder-stone-400 shadow-2xs"
+              />
+            </div>
+            <button
+              type="button"
+              onClick={() => handleAiRecommend(aiInputText)}
+              className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-navy-900 hover:bg-navy-800 text-white font-semibold text-xs transition cursor-pointer shrink-0 shadow-xs"
+            >
+              <Sparkles className="h-4 w-4 text-amber-400" />
+              <span>Get AI Recommendation</span>
+            </button>
+          </div>
+
+          {/* Quick Presets */}
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs">
+            <span className="text-[11px] font-bold text-stone-400 uppercase tracking-wider shrink-0 mr-1">
+              Quick Suggestions:
+            </span>
+            {AI_STORAGE_PRESETS.map((preset) => (
+              <button
+                key={preset.id}
+                type="button"
+                onClick={() => handleAiRecommend(preset.query)}
+                className={`px-3 py-1.5 rounded-lg border text-xs font-semibold whitespace-nowrap transition cursor-pointer ${
+                  activeAiRec?.title === preset.rec.title
+                    ? 'bg-amber-500 text-navy-900 border-amber-500 shadow-2xs'
+                    : 'bg-white border-stone-200 text-stone-700 hover:border-amber-300 hover:bg-amber-50/50'
+                }`}
+              >
+                {preset.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Active AI Recommendation Result Box */}
+        {activeAiRec && (
+          <div className="mt-2 p-4 rounded-xl bg-white border border-amber-200 shadow-xs space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-stone-100 pb-3">
+              <div className="space-y-0.5">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
+                  Recommended Size &amp; Type
+                </span>
+                <h3 className="text-base font-bold text-navy-900 font-serif flex items-center gap-2 mt-1">
+                  <span>{activeAiRec.title}</span>
+                </h3>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setFilterOnlyAiMatch(!filterOnlyAiMatch)}
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                  filterOnlyAiMatch
+                    ? 'bg-emerald-600 text-white shadow-xs'
+                    : 'bg-amber-100 text-amber-900 hover:bg-amber-200 border border-amber-300'
+                }`}
+              >
+                <CheckCircle2 className="h-3.5 w-3.5" />
+                <span>{filterOnlyAiMatch ? 'Filtering by AI Match (Active)' : 'Filter Only AI Matches'}</span>
+              </button>
+            </div>
+
+            <p className="text-xs text-stone-700 leading-relaxed">
+              <strong className="text-navy-900">Why this recommendation?</strong> {activeAiRec.reasoning}
+            </p>
+
+            <div className="flex flex-wrap items-center gap-2 pt-1">
+              <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider">
+                Recommended Features:
+              </span>
+              {activeAiRec.features.map((feat) => (
+                <span
+                  key={feat}
+                  className="inline-flex items-center gap-1 text-[11px] font-medium text-navy-900 bg-stone-100 px-2.5 py-0.5 rounded-md border border-stone-200"
+                >
+                  <ShieldCheck className="h-3 w-3 text-emerald-600" />
+                  <span>{feat}</span>
+                </span>
+              ))}
+            </div>
           </div>
         )}
       </div>
@@ -544,25 +838,39 @@ export default function StorageSpacesMarketplace() {
                 {isExpanded && (
                   <div className="border-t border-stone-100 p-5">
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {company.units.map((unit) => (
-                        <Card
-                          key={unit.id}
-                          className="border-stone-200 bg-stone-50/50 hover:border-amber-400 hover:shadow-md transition-all duration-300 flex flex-col justify-between overflow-hidden group"
-                        >
-                          <div className="p-5 space-y-3">
-                            <div className="flex items-start justify-between gap-2">
-                              <div>
-                                <span className="text-[10px] font-bold uppercase tracking-wider text-amber-700 bg-amber-50 px-2.5 py-1 rounded-full border border-amber-200">
-                                  {unit.type}
-                                </span>
-                                <h3 className="text-sm font-bold text-navy-900 font-serif mt-2 group-hover:text-amber-700 transition-colors">
-                                  {unit.name}
-                                </h3>
+                      {company.units.map((unit) => {
+                        const isAiMatch = isUnitAiMatch(unit);
+                        return (
+                          <Card
+                            key={unit.id}
+                            className={`transition-all duration-300 flex flex-col justify-between overflow-hidden group ${
+                              isAiMatch
+                                ? 'border-amber-400 ring-2 ring-amber-400/20 bg-amber-50/20 shadow-xs'
+                                : 'border-stone-200 bg-stone-50/50 hover:border-amber-400 hover:shadow-md'
+                            }`}
+                          >
+                            <div className="p-5 space-y-3">
+                              <div className="flex items-start justify-between gap-2">
+                                <div>
+                                  <div className="flex items-center gap-1.5 flex-wrap">
+                                    <span className="text-[10px] font-bold uppercase tracking-wider text-amber-700 bg-amber-50 px-2.5 py-1 rounded-full border border-amber-200">
+                                      {unit.type}
+                                    </span>
+                                    {isAiMatch && (
+                                      <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-navy-900 bg-amber-400 px-2 py-0.5 rounded-full shadow-2xs">
+                                        <Sparkles className="h-3 w-3 text-navy-900" />
+                                        <span>AI Best Match</span>
+                                      </span>
+                                    )}
+                                  </div>
+                                  <h3 className="text-sm font-bold text-navy-900 font-serif mt-2 group-hover:text-amber-700 transition-colors">
+                                    {unit.name}
+                                  </h3>
+                                </div>
+                                <Badge variant="success" className="text-[10px] uppercase font-bold shrink-0">
+                                  {unit.status}
+                                </Badge>
                               </div>
-                              <Badge variant="success" className="text-[10px] uppercase font-bold shrink-0">
-                                {unit.status}
-                              </Badge>
-                            </div>
 
                             <p className="text-xs text-stone-600 line-clamp-2 leading-relaxed">
                               {unit.description}
@@ -608,7 +916,8 @@ export default function StorageSpacesMarketplace() {
                             </Button>
                           </div>
                         </Card>
-                      ))}
+                      );
+                    })}
                     </div>
                   </div>
                 )}

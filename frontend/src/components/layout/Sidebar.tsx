@@ -25,6 +25,20 @@ export function Sidebar() {
 
   useEffect(() => {
     async function loadRole() {
+      // 1. In business portal, check active warehouse session first
+      if (pathname?.startsWith('/business')) {
+        try {
+          const bizRes = await fetch('/api/auth/business-session');
+          const bizJson = await bizRes.json();
+          if (bizJson.success && bizJson.warehouse?.role) {
+            setUserRole(bizJson.warehouse.role);
+            return;
+          }
+        } catch {
+          // ignore
+        }
+      }
+
       const supabase = createClient();
       try {
         const {
@@ -32,8 +46,18 @@ export function Sidebar() {
         } = await supabase.auth.getUser();
 
         if (!user) {
-          // No session — middleware should have redirected; show nothing
-          setUserRole(null);
+          // Check for active multi-warehouse business session
+          try {
+            const bizRes = await fetch('/api/auth/business-session');
+            const bizJson = await bizRes.json();
+            if (bizJson.success && bizJson.warehouse?.role) {
+              setUserRole(bizJson.warehouse.role);
+              return;
+            }
+          } catch {
+            // ignore
+          }
+          setUserRole('BUSINESS_OWNER');
           return;
         }
 

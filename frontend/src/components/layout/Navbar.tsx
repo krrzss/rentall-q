@@ -19,6 +19,25 @@ export function Navbar() {
 
   useEffect(() => {
     async function loadUserProfile() {
+      // 1. If currently in the Business Portal, check for active warehouse session first
+      if (pathname?.startsWith('/business')) {
+        try {
+          const sessionRes = await fetch('/api/auth/business-session');
+          const sessionJson = await sessionRes.json();
+          if (sessionJson.success && sessionJson.warehouse) {
+            setProfile({
+              name: sessionJson.warehouse.name || 'Warehouse Operations',
+              role: sessionJson.warehouse.role || 'BUSINESS_OWNER',
+              email: sessionJson.warehouse.email || 'operator@rentallq.com',
+            });
+            setLoading(false);
+            return;
+          }
+        } catch {
+          // fallback
+        }
+      }
+
       const supabase = createClient();
       try {
         const {

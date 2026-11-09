@@ -24,7 +24,8 @@ def test_churn_prediction_agent_high_risk():
         "customer_id": "cust-002",
         "days_since_last_booking": 60,
         "total_bookings": 2,
-        "cancellations_count": 2
+        "cancellations_count": 2,
+        "late_payment_count": 1
     }
     output = agent.run(input_data)
 

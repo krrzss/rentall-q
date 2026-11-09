@@ -96,8 +96,14 @@ function ClientLoginContent() {
           return;
         }
 
-        router.push('/dashboard');
-        router.refresh();
+        // Clear any business warehouse session cookies to ensure clean client state
+        await fetch('/api/auth/business-session', { method: 'DELETE' }).catch(() => {});
+        if (typeof document !== 'undefined') {
+          document.cookie = 'rentallq_active_warehouse=; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT;';
+          document.cookie = 'rentallq_demo_session=; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT;';
+        }
+
+        window.location.href = '/dashboard';
       }
     } catch (err: any) {
       setError(err?.message || 'An unexpected error occurred.');
