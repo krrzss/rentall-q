@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -32,7 +32,10 @@ import {
   Layers,
   MapPin,
   ChevronRight,
+  Printer,
+  Download,
 } from 'lucide-react';
+import { addPortalNotification } from '@/lib/realtimeSync';
 
 interface RentedUnit {
   id: string;
@@ -65,18 +68,18 @@ interface RentedUnit {
   autoPayEnabled: boolean;
 }
 
-const MOCK_RENTED_UNITS: RentedUnit[] = [
+const BASELINE_RENTED_UNITS: RentedUnit[] = [
   {
     id: 'rented-unit-001',
-    unitNumber: '#ATX-104',
+    unitNumber: '#MUM-A101',
     facilityId: 'b1000000-0000-0000-0000-000000000001',
-    facilityName: 'Austin SafeStore & Central Depot',
-    facilityAddress: '4200 Industrial Blvd, Austin, TX 78744',
-    facilityCity: 'Austin, TX',
-    managerName: 'Marcus Vance',
-    managerPhone: '(512) 555-0192',
-    accessHours: '24/7 Gate Access (Keypad Enabled)',
-    sizeCategory: 'Medium Space',
+    facilityName: 'Hindustan Cold Storage & Logistics',
+    facilityAddress: 'Sector 42, Vashi Logistics Zone, Navi Mumbai, MH 400703',
+    facilityCity: 'Navi Mumbai',
+    managerName: 'Marcus Vance / Amit Sharma',
+    managerPhone: '+91 98201 11234',
+    accessHours: '24/7 Gate Access (Keypad & RFID Enabled)',
+    sizeCategory: 'Medium Climate Bay',
     dimensions: '10ft x 10ft',
     sqFt: 100,
     floorLevel: 'Ground Level • Drive-Up Roll-Up Door',
@@ -84,28 +87,28 @@ const MOCK_RENTED_UNITS: RentedUnit[] = [
     temperature: '21.4°C (70.5°F)',
     humidity: '44% RH',
     storedItemsSummary: '2 BHK Household Furniture, Books, Electronics & Wardrobes',
-    monthlyRent: 145.0,
+    monthlyRent: 8500,
     bookedAt: '15 Jan 2026',
     leaseEndDate: '15 Dec 2026',
     daysRemaining: 35,
     status: 'ACTIVE',
     gatePin: '8429',
     lastPaymentDate: '15 Nov 2026',
-    lastPaymentAmount: 145.0,
-    lastTransactionId: 'TXN-ATX-882194',
+    lastPaymentAmount: 8500,
+    lastTransactionId: 'INV-2026-00841',
     nextDueDate: '15 Dec 2026',
     autoPayEnabled: true,
   },
   {
     id: 'rented-unit-002',
-    unitNumber: '#CHI-208',
+    unitNumber: '#BLR-D88',
     facilityId: 'b2000000-0000-0000-0000-000000000002',
-    facilityName: 'Chicago MetroHub Micro-Depot',
-    facilityAddress: '890 Logistics Way, Chicago, IL 60607',
-    facilityCity: 'Chicago, IL',
-    managerName: 'Elena Rostova',
-    managerPhone: '(312) 555-8831',
-    accessHours: '6:00 AM – 10:00 PM Daily',
+    facilityName: 'Urban Attic Self-Storage',
+    facilityAddress: '890 Outer Ring Road, Mahadevapura, Bengaluru, KA 560048',
+    facilityCity: 'Bengaluru',
+    managerName: 'Elena Rostova / Priya Verma',
+    managerPhone: '+91 90000 22345',
+    accessHours: '6:00 AM – 11:00 PM Daily',
     sizeCategory: 'Commercial Warehouse Bay',
     dimensions: '15ft x 20ft',
     sqFt: 300,
@@ -114,45 +117,45 @@ const MOCK_RENTED_UNITS: RentedUnit[] = [
     temperature: '19.8°C (67.6°F)',
     humidity: '48% RH',
     storedItemsSummary: 'E-commerce Inventory, Packaging Cartons & Fulfillment Supplies',
-    monthlyRent: 320.0,
+    monthlyRent: 6800,
     bookedAt: '01 Aug 2026',
     leaseEndDate: '28 Nov 2026',
     daysRemaining: 18,
     status: 'DUE_SOON',
     gatePin: '6190',
     lastPaymentDate: '28 Oct 2026',
-    lastPaymentAmount: 320.0,
-    lastTransactionId: 'TXN-CHI-491022',
+    lastPaymentAmount: 6800,
+    lastTransactionId: 'INV-2026-00502',
     nextDueDate: '28 Nov 2026',
     autoPayEnabled: false,
   },
   {
     id: 'rented-unit-003',
-    unitNumber: '#SEA-012',
+    unitNumber: '#DEL-V12',
     facilityId: 'b3000000-0000-0000-0000-000000000003',
-    facilityName: 'Seattle Pacific Port & Fleet Terminal',
-    facilityAddress: '1400 Harbor Ave SW, Seattle, WA 98116',
-    facilityCity: 'Seattle, WA',
-    managerName: 'Dave Kowalski',
-    managerPhone: '(206) 555-4019',
+    facilityName: 'Capital Vault Warehousing',
+    facilityAddress: 'Plot 18, Udyog Vihar Phase 4, Gurugram, HR 122016',
+    facilityCity: 'Gurugram',
+    managerName: 'Dave Kowalski / Ravi Kumar',
+    managerPhone: '+91 98711 44567',
     accessHours: '24/7 Security Gate with CCTV Patrol',
     sizeCategory: 'Vehicle & Container Bay',
-    dimensions: '10ft x 20ft',
+    dimensions: '20ft x 10ft',
     sqFt: 200,
     floorLevel: 'Covered High-Clearance Ground Bay',
     isClimateControlled: false,
-    temperature: '17.2°C (63.0°F)',
-    humidity: '51% RH',
+    temperature: '22.5°C (72.5°F)',
+    humidity: '45% RH',
     storedItemsSummary: '1968 Classic Sedan, Spare Wheels & Metal Tool Chest',
-    monthlyRent: 210.0,
+    monthlyRent: 16500,
     bookedAt: '10 Sep 2026',
     leaseEndDate: '10 Jan 2027',
     daysRemaining: 61,
     status: 'AUTO_RENEW',
     gatePin: '3374',
     lastPaymentDate: '10 Nov 2026',
-    lastPaymentAmount: 210.0,
-    lastTransactionId: 'TXN-SEA-902311',
+    lastPaymentAmount: 16500,
+    lastTransactionId: 'INV-2026-00888',
     nextDueDate: '10 Dec 2026',
     autoPayEnabled: true,
   },
@@ -161,7 +164,8 @@ const MOCK_RENTED_UNITS: RentedUnit[] = [
 type ActiveTab = 'overview' | 'access' | 'billing' | 'service';
 
 export default function MyBookingsPage() {
-  const [selectedUnitId, setSelectedUnitId] = useState<string>(MOCK_RENTED_UNITS[0].id);
+  const [rentedUnits, setRentedUnits] = useState<RentedUnit[]>(BASELINE_RENTED_UNITS);
+  const [selectedUnitId, setSelectedUnitId] = useState<string>(BASELINE_RENTED_UNITS[0].id);
   const [activeTab, setActiveTab] = useState<ActiveTab>('overview');
 
   // Gate PIN feedback
@@ -191,8 +195,57 @@ export default function MyBookingsPage() {
 
   const [showAgreementModal, setShowAgreementModal] = useState(false);
 
+  // Load custom bookings from storage
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const raw = localStorage.getItem('rentallq_my_bookings');
+      if (raw) {
+        const storedList = JSON.parse(raw);
+        if (Array.isArray(storedList) && storedList.length > 0) {
+          const mappedCustom: RentedUnit[] = storedList.map((b: any, idx: number) => ({
+            id: b.id || `custom-unit-${idx}`,
+            unitNumber: b.unitName?.split('•')[0]?.replace('Unit', '').trim() || `#RQ-${b.id?.slice(-4) || '101'}`,
+            facilityId: b.businessId || 'b1000000-0000-0000-0000-000000000001',
+            facilityName: b.businessName || 'Hindustan Cold Storage & Logistics',
+            facilityAddress: b.location || 'Verified Platform Facility',
+            facilityCity: b.location?.split(',')[1]?.trim() || 'Mumbai',
+            managerName: 'Facility Command Desk',
+            managerPhone: '+91 98201 11234',
+            accessHours: '24/7 Gate Keypad Access',
+            sizeCategory: b.unitType || 'Verified Storage Space',
+            dimensions: b.dimensions || '10ft x 10ft',
+            sqFt: 100,
+            floorLevel: 'Ground Level • Drive-Up',
+            isClimateControlled: true,
+            temperature: '21.0°C',
+            humidity: '44% RH',
+            storedItemsSummary: 'Verified Tenant Personal Goods & Household Storage',
+            monthlyRent: Number(b.monthlyRate) || 8500,
+            bookedAt: b.bookedAt ? new Date(b.bookedAt).toLocaleDateString('en-GB') : 'Today',
+            leaseEndDate: b.endDate ? new Date(b.endDate).toLocaleDateString('en-GB') : 'Next Year',
+            daysRemaining: 30 * (b.durationMonths || 1),
+            status: 'ACTIVE',
+            gatePin: `${Math.floor(1000 + Math.random() * 9000)}`,
+            lastPaymentDate: 'Today',
+            lastPaymentAmount: Number(b.totalAmount) || 8500,
+            lastTransactionId: b.transactionId || `INV-2026-${Math.floor(10000 + Math.random() * 90000)}`,
+            nextDueDate: 'Next Month',
+            autoPayEnabled: true,
+          }));
+
+          const combined = [...mappedCustom, ...BASELINE_RENTED_UNITS];
+          setRentedUnits(combined);
+          setSelectedUnitId(combined[0].id);
+        }
+      }
+    } catch (e) {
+      console.warn('Custom bookings parse error', e);
+    }
+  }, []);
+
   const currentUnit =
-    MOCK_RENTED_UNITS.find((u) => u.id === selectedUnitId) || MOCK_RENTED_UNITS[0];
+    rentedUnits.find((u) => u.id === selectedUnitId) || rentedUnits[0];
 
   const handleCopyPin = () => {
     navigator.clipboard.writeText(currentUnit.gatePin);
@@ -224,6 +277,23 @@ export default function MyBookingsPage() {
   const handleSubmitMaintenance = (e: React.FormEvent) => {
     e.preventDefault();
     setMaintenanceSubmitted(true);
+
+    // Broadcast maintenance ticket to Business Portal
+    try {
+      addPortalNotification({
+        type: 'MAINTENANCE_TICKET',
+        title: 'Unit Maintenance Ticket Dispatched',
+        message: `${currentUnit.unitNumber} (${currentUnit.facilityName}): ${maintenanceCategory} — ${maintenanceNote || 'Inspection requested'}`,
+        link: '/business/rental-units',
+        businessId: currentUnit.facilityId,
+        businessName: currentUnit.facilityName,
+        clientName: 'Tenant Client',
+        unitCode: currentUnit.unitNumber,
+      });
+    } catch (err) {
+      console.warn('Ticket notification error', err);
+    }
+
     setTimeout(() => {
       setShowMaintenanceModal(false);
       setMaintenanceSubmitted(false);
@@ -231,8 +301,46 @@ export default function MyBookingsPage() {
     }, 2200);
   };
 
+  const handleMoveOutNotice = () => {
+    setMoveOutConfirmed(true);
+
+    // Broadcast move-out notice to Business Portal
+    try {
+      addPortalNotification({
+        type: 'MOVE_OUT_NOTICE',
+        title: '30-Day Move-Out Notice Submitted',
+        message: `${currentUnit.unitNumber} (${currentUnit.facilityName}): Tenant scheduled departure on ${moveOutDate}.`,
+        link: '/business/customers',
+        businessId: currentUnit.facilityId,
+        businessName: currentUnit.facilityName,
+        clientName: 'Tenant Client',
+        unitCode: currentUnit.unitNumber,
+      });
+    } catch (err) {
+      console.warn('Move-out notification error', err);
+    }
+  };
+
   const handlePayRent = () => {
     setIsPaying(true);
+
+    // Broadcast rent payment to Business Portal & Admin
+    try {
+      addPortalNotification({
+        type: 'PAYMENT_RECEIVED',
+        title: 'Rent Payment Cleared',
+        message: `₹${currentUnit.monthlyRent.toLocaleString('en-IN')} received for Unit ${currentUnit.unitNumber} at ${currentUnit.facilityName}.`,
+        link: '/business/payments',
+        businessId: currentUnit.facilityId,
+        businessName: currentUnit.facilityName,
+        clientName: 'Tenant Client',
+        unitCode: currentUnit.unitNumber,
+        amount: currentUnit.monthlyRent,
+      });
+    } catch (err) {
+      console.warn('Payment notification error', err);
+    }
+
     setTimeout(() => {
       setIsPaying(false);
       setPaymentSuccess(true);
@@ -253,14 +361,14 @@ export default function MyBookingsPage() {
               Active Storage Portfolio
             </span>
             <span className="text-xs text-stone-500 font-medium">
-              3 Units Across 3 Cities
+              {rentedUnits.length} Rented Bays • Keyless Access Active
             </span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-navy-900 font-serif mt-1">
             My Rented Storage Spaces
           </h1>
           <p className="text-sm text-stone-600 mt-1">
-            Select any unit below to view facility details, digital gate access, invoices, or request maintenance.
+            Select any unit below to view facility details, digital gate access PIN, rent invoices, or request maintenance.
           </p>
         </div>
         <Link href="/storage-spaces">
@@ -273,7 +381,7 @@ export default function MyBookingsPage() {
 
       {/* ── 1. UNIT SELECTOR CARDS (Top Bar) ── */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {MOCK_RENTED_UNITS.map((unit) => {
+        {rentedUnits.map((unit) => {
           const isSelected = unit.id === selectedUnitId;
           return (
             <div
@@ -337,7 +445,7 @@ export default function MyBookingsPage() {
 
               <div className="mt-3 pt-3 border-t border-stone-100 flex items-center justify-between text-xs">
                 <span className="text-stone-500">{unit.dimensions} ({unit.sqFt} sqft)</span>
-                <span className="font-bold text-navy-900">${unit.monthlyRent}/mo</span>
+                <span className="font-bold text-navy-900">₹{unit.monthlyRent.toLocaleString('en-IN')}/mo</span>
               </div>
             </div>
           );
@@ -362,10 +470,10 @@ export default function MyBookingsPage() {
                 </span>
               </div>
               <p className="text-sm text-stone-200 font-medium flex items-center gap-1.5">
-                <Building2 className="h-4 w-4 text-amber-400" />
+                <Building2 className="h-4 w-4 text-amber-400 shrink-0" />
                 <span>{currentUnit.facilityName}</span>
                 <span className="text-stone-400">&bull;</span>
-                <span className="text-stone-300">{currentUnit.facilityAddress}</span>
+                <span className="text-stone-300 truncate max-w-md">{currentUnit.facilityAddress}</span>
               </p>
             </div>
 
@@ -445,7 +553,7 @@ export default function MyBookingsPage() {
                     </div>
                     <div className="flex justify-between">
                       <span className="text-stone-500">Monthly Rent:</span>
-                      <span className="font-bold text-amber-700">${currentUnit.monthlyRent} / mo</span>
+                      <span className="font-bold text-amber-700">₹{currentUnit.monthlyRent.toLocaleString('en-IN')} / mo</span>
                     </div>
                   </div>
                 </div>
@@ -481,7 +589,7 @@ export default function MyBookingsPage() {
                     </div>
                   </div>
                   <p className="text-[11px] text-stone-500">
-                    Climate telemetry is monitored 24/7 to protect stored valuables from mold and heat damage.
+                    Climate telemetry is monitored 24/7 to protect stored valuables from mold and moisture variation.
                   </p>
                 </div>
 
@@ -514,7 +622,7 @@ export default function MyBookingsPage() {
               <div className="p-4 rounded-xl border border-amber-200 bg-amber-50/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="space-y-1">
                   <span className="text-xs font-bold uppercase tracking-wider text-amber-800">
-                    Stored Valuables Notes
+                    Stored Valuables &amp; Goods
                   </span>
                   <p className="text-sm font-medium text-navy-900">
                     {currentUnit.storedItemsSummary}
@@ -637,8 +745,8 @@ export default function MyBookingsPage() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="p-4 rounded-xl border border-stone-200 bg-stone-50/60">
                   <span className="text-xs font-semibold text-stone-500">Monthly Rent</span>
-                  <div className="text-2xl font-bold text-navy-900 mt-1">${currentUnit.monthlyRent}</div>
-                  <span className="text-[11px] text-stone-400">Billed on the {currentUnit.nextDueDate.split(' ')[0]}th monthly</span>
+                  <div className="text-2xl font-bold text-navy-900 mt-1">₹{currentUnit.monthlyRent.toLocaleString('en-IN')}</div>
+                  <span className="text-[11px] text-stone-400">Billed monthly on the {currentUnit.nextDueDate.split(' ')[0]}</span>
                 </div>
 
                 <div className="p-4 rounded-xl border border-stone-200 bg-stone-50/60">
@@ -660,7 +768,7 @@ export default function MyBookingsPage() {
                     onClick={() => setShowPayModal(true)}
                     className="bg-amber-500 hover:bg-amber-400 text-navy-950 font-bold text-xs mt-2 cursor-pointer shadow-xs"
                   >
-                    Pay Next Month (${currentUnit.monthlyRent})
+                    Pay Rent (₹{currentUnit.monthlyRent.toLocaleString('en-IN')})
                   </Button>
                 </div>
               </div>
@@ -682,7 +790,7 @@ export default function MyBookingsPage() {
                       <div className="text-stone-400 text-[11px]">Paid on {currentUnit.lastPaymentDate} via Auto-Pay</div>
                     </div>
                     <div className="text-right">
-                      <div className="font-bold text-navy-900">${currentUnit.lastPaymentAmount.toFixed(2)}</div>
+                      <div className="font-bold text-navy-900">₹{currentUnit.lastPaymentAmount.toLocaleString('en-IN')}</div>
                       <span className="inline-block text-[10px] text-emerald-800 bg-emerald-50 px-2 py-0.2 rounded-full font-bold">
                         Paid &amp; Cleared
                       </span>
@@ -704,14 +812,14 @@ export default function MyBookingsPage() {
                   </div>
                   <div>
                     <h3 className="font-bold text-navy-900 text-sm">Unit Maintenance Request</h3>
-                    <p className="text-xs text-stone-500">Report facility or locker issues directly to facility management.</p>
+                    <p className="text-xs text-stone-500">Report locker or bay issues directly to facility management.</p>
                   </div>
                 </div>
 
                 <div className="p-3 bg-white rounded-xl border border-stone-200 text-xs text-stone-600 space-y-1.5">
                   <div className="font-semibold text-navy-900">Supported Quick Requests:</div>
                   <div>&bull; Shutter Lock sticking or damaged</div>
-                  <div>&bull; Air-conditioner or climate control variation</div>
+                  <div>&bull; Climate control variation / temperature check</div>
                   <div>&bull; Overhead lighting replacement</div>
                   <div>&bull; Water or moisture inspection</div>
                 </div>
@@ -810,7 +918,7 @@ export default function MyBookingsPage() {
                     required
                     value={guestName}
                     onChange={(e) => setGuestName(e.target.value)}
-                    placeholder="e.g., QuickMovers Team / Brother Alex"
+                    placeholder="e.g., QuickMovers Team / Driver"
                     className="w-full rounded-xl border border-stone-300 p-2.5 text-xs text-navy-900 focus:border-amber-500 focus:outline-none"
                   />
                 </div>
@@ -849,7 +957,7 @@ export default function MyBookingsPage() {
                 <CheckCircle2 className="h-10 w-10 text-emerald-600 mx-auto" />
                 <h4 className="font-bold text-navy-900">Maintenance Request Dispatched!</h4>
                 <p className="text-xs text-stone-500">
-                  Facility manager {currentUnit.managerName} has been alerted for unit {currentUnit.unitNumber}.
+                  Facility management at {currentUnit.facilityName} has been alerted with an operational notification.
                 </p>
               </div>
             ) : (
@@ -917,7 +1025,7 @@ export default function MyBookingsPage() {
                 <CheckCircle2 className="h-10 w-10 text-emerald-600 mx-auto" />
                 <h4 className="font-bold text-navy-900">Move-Out Notice Recorded</h4>
                 <p className="text-xs text-stone-500">
-                  Your lease for {currentUnit.unitNumber} is scheduled to end on {moveOutDate}. Deposit refund instructions sent to your email.
+                  Your lease for {currentUnit.unitNumber} is scheduled to end on {moveOutDate}. The facility manager has received this notice.
                 </p>
                 <Button
                   type="button"
@@ -945,7 +1053,7 @@ export default function MyBookingsPage() {
                 </div>
                 <Button
                   type="button"
-                  onClick={() => setMoveOutConfirmed(true)}
+                  onClick={handleMoveOutNotice}
                   className="w-full bg-rose-700 hover:bg-rose-800 text-white font-bold text-xs py-2.5 cursor-pointer"
                 >
                   Confirm 30-Day Move-Out Notice
@@ -979,7 +1087,7 @@ export default function MyBookingsPage() {
                 <CheckCircle2 className="h-10 w-10 text-emerald-600 mx-auto" />
                 <h4 className="font-bold text-navy-900">Payment Successful!</h4>
                 <p className="text-xs text-stone-500">
-                  ${currentUnit.monthlyRent.toFixed(2)} has been charged to your card. Receipt has been logged in Payments Hub.
+                  ₹{currentUnit.monthlyRent.toLocaleString('en-IN')} has been cleared. Receipt logged in Payments Hub.
                 </p>
               </div>
             ) : (
@@ -995,7 +1103,7 @@ export default function MyBookingsPage() {
                   </div>
                   <div className="flex justify-between border-t border-stone-200 pt-1.5 text-sm">
                     <span className="font-bold text-navy-900">Total Charge:</span>
-                    <span className="font-bold text-amber-700">${currentUnit.monthlyRent.toFixed(2)}</span>
+                    <span className="font-bold text-amber-700">₹{currentUnit.monthlyRent.toLocaleString('en-IN')}</span>
                   </div>
                 </div>
 
@@ -1005,7 +1113,7 @@ export default function MyBookingsPage() {
                   onClick={handlePayRent}
                   className="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs py-3 cursor-pointer shadow-sm"
                 >
-                  {isPaying ? 'Processing Payment...' : `Confirm & Pay $${currentUnit.monthlyRent.toFixed(2)}`}
+                  {isPaying ? 'Processing Payment...' : `Confirm & Pay ₹${currentUnit.monthlyRent.toLocaleString('en-IN')}`}
                 </Button>
               </div>
             )}
@@ -1020,7 +1128,7 @@ export default function MyBookingsPage() {
             <div className="flex items-center justify-between border-b border-stone-100 pb-3">
               <h3 className="font-bold text-navy-900 text-base flex items-center gap-2">
                 <FileText className="h-4.5 w-4.5 text-amber-600" />
-                <span>Rental Agreement &bull; {currentUnit.unitNumber}</span>
+                <span>Digital Lease Contract &bull; {currentUnit.unitNumber}</span>
               </h3>
               <button
                 type="button"
@@ -1033,25 +1141,38 @@ export default function MyBookingsPage() {
 
             <div className="p-4 bg-cream-50 rounded-xl border border-stone-200 space-y-2 text-xs font-mono">
               <div className="font-bold text-navy-900 border-b border-stone-200 pb-1">
-                RENTALLQ MASTER STORAGE LEASE CONTRACT
+                RENTALL-Q MASTER STORAGE LEASE CONTRACT
               </div>
               <div>Facility: {currentUnit.facilityName}</div>
               <div>Address: {currentUnit.facilityAddress}</div>
               <div>Unit Number: {currentUnit.unitNumber} ({currentUnit.dimensions})</div>
               <div>Tenant: Verified Account Tenant</div>
-              <div>Monthly Rent: ${currentUnit.monthlyRent}.00 USD</div>
+              <div>Monthly Rent: ₹{currentUnit.monthlyRent.toLocaleString('en-IN')} INR</div>
               <div>Lease Term: {currentUnit.bookedAt} to {currentUnit.leaseEndDate}</div>
-              <div>Gate Security PIN: #{currentUnit.gatePin}</div>
+              <div>Keypad Gate Security PIN: #{currentUnit.gatePin}</div>
               <div className="text-emerald-700 font-bold pt-1">[STATUS: DIGITALLY EXECUTED &amp; ACTIVE]</div>
             </div>
 
-            <Button
-              type="button"
-              onClick={() => setShowAgreementModal(false)}
-              className="w-full bg-navy-900 text-white font-bold text-xs cursor-pointer"
-            >
-              Close Contract Viewer
-            </Button>
+            <div className="flex items-center gap-3">
+              <Button
+                type="button"
+                onClick={() => {
+                  window.print();
+                }}
+                variant="outline"
+                className="flex-1 flex items-center justify-center gap-1.5 text-xs font-bold"
+              >
+                <Printer className="h-4 w-4" />
+                <span>Print Certificate</span>
+              </Button>
+              <Button
+                type="button"
+                onClick={() => setShowAgreementModal(false)}
+                className="flex-1 bg-navy-900 text-white font-bold text-xs"
+              >
+                Close Contract
+              </Button>
+            </div>
           </div>
         </div>
       )}

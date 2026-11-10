@@ -153,9 +153,49 @@ export function PaymentList({ refreshKey = 0 }: PaymentListProps) {
                 <span className="font-bold text-emerald-700">₹{invoiceModalPayment.amount.toFixed(2)}</span>
               </div>
             </div>
-            <Button onClick={() => alert('Printing Invoice PDF...')} className="w-full bg-navy-900 text-white font-bold">
-              Download PDF Invoice
-            </Button>
+            <div className="flex gap-2 pt-2">
+              <Button
+                onClick={() => {
+                  const receiptText = `
+========================================
+       RENTALL-Q TAX INVOICE RECEIPT
+========================================
+Invoice Code: INV-${invoiceModalPayment.id.substring(0, 8)}
+Date: ${new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+Facility: Hindustan Cold Storage & Logistics
+GSTIN: 27AABCH1234F1Z8
+----------------------------------------
+Billed To: ${invoiceModalPayment.bookingCustomerName || 'Client Profile'}
+Booking ID: ${invoiceModalPayment.bookingId}
+Method: ${invoiceModalPayment.method.replace('_', ' ')}
+----------------------------------------
+Gross Amount:    ₹${invoiceModalPayment.amount.toFixed(2)}
+Platform Fee:    ₹${(invoiceModalPayment.amount * 0.085).toFixed(2)} (8.5%)
+Net Dispatched:  ₹${(invoiceModalPayment.amount * 0.915).toFixed(2)}
+Status:          ${invoiceModalPayment.status === 'COMPLETED' ? 'PAID & SETTLED' : 'PENDING'}
+========================================
+`;
+                  const blob = new Blob([receiptText], { type: 'text/plain' });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = `Invoice_INV-${invoiceModalPayment.id.substring(0, 8)}.txt`;
+                  a.click();
+                  URL.revokeObjectURL(url);
+                  setReminderToast(`Receipt for INV-${invoiceModalPayment.id.substring(0, 8)} downloaded.`);
+                }}
+                className="flex-1 bg-navy-900 text-white font-bold"
+              >
+                Download Receipt
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => window.print()}
+                className="flex-1 border-stone-300 text-stone-700"
+              >
+                Print Invoice
+              </Button>
+            </div>
           </div>
         </div>
       )}

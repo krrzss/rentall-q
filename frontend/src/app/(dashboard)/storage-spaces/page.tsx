@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import Link from 'next/link';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
@@ -23,9 +24,15 @@ import {
   ChevronUp,
   User,
   BrainCircuit,
+  Eye,
+  Thermometer,
+  Clock,
+  Phone,
+  Info,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/server/lib/supabaseClient';
+import { addPortalNotification } from '@/lib/realtimeSync';
 
 interface StorageUnit {
   id: string;
@@ -35,6 +42,12 @@ interface StorageUnit {
   basePrice: number;
   status: string;
   dimensions?: string;
+  sqFt?: number;
+  floorLevel?: string;
+  isClimateControlled?: boolean;
+  temperature?: string;
+  humidity?: string;
+  features?: string[];
   location?: string;
   businessId: string;
   businessName: string;
@@ -130,6 +143,7 @@ export default function StorageSpacesMarketplace() {
 
   // Checkout / Payment Modal state
   const [selectedUnit, setSelectedUnit] = useState<StorageUnit | null>(null);
+  const [inspectingUnit, setInspectingUnit] = useState<StorageUnit | null>(null);
   const [tenantName, setTenantName] = useState('');
   const [tenantEmail, setTenantEmail] = useState('');
   const [tenantPhone, setTenantPhone] = useState('');
@@ -189,6 +203,29 @@ export default function StorageSpacesMarketplace() {
       } finally {
         setLoading(false);
       }
+
+      // Check URL parameters for AI Space Advisor recommendation
+      if (typeof window !== 'undefined') {
+        try {
+          const params = new URLSearchParams(window.location.search);
+          const recType = params.get('recommendedType');
+          const recSize = params.get('recommendedSize');
+          const sqft = params.get('sqft');
+          if (recType || recSize) {
+            setActiveAiRec({
+              query: `${recType || ''} ${recSize || ''}`.trim(),
+              recommendedType: recType || 'Standard Storage',
+              recommendedSize: recSize || '10x10',
+              title: `AI Match: ${recSize || ''} ${recType || 'Storage'}`,
+              reasoning: `Based on your inventory calculation (~${sqft || '100'} sq ft), this unit type offers optimal capacity with 20% access clearance.`,
+              features: ['Optimized Capacity', '24/7 Gate PIN', 'Archival Climate Protection'],
+            });
+            setFilterOnlyAiMatch(true);
+          }
+        } catch {
+          // ignore
+        }
+      }
     }
 
     loadData();
@@ -208,10 +245,25 @@ export default function StorageSpacesMarketplace() {
       uName.includes(recType) ||
       uDesc.includes(recType) ||
       uDim.includes(recSize) ||
-      (recType === 'climate controlled' && (uDesc.includes('climate') || uType.includes('climate'))) ||
-      (recType === 'drive-up' && (uDesc.includes('drive') || uType.includes('parking') || uType.includes('drive')))
+      (recType.includes('climate') && (uDesc.includes('climate') || uType.includes('climate') || uName.includes('climate'))) ||
+      (recType.includes('drive') && (uDesc.includes('drive') || uType.includes('drive') || uName.includes('drive') || uType.includes('vehicle'))) ||
+      (recType.includes('locker') && (uDesc.includes('locker') || uType.includes('locker') || uName.includes('locker') || uDim.includes('5x5'))) ||
+      (recType.includes('warehouse') && (uDesc.includes('warehouse') || uType.includes('warehouse') || uName.includes('warehouse') || uDim.includes('20') || uDim.includes('30')))
     );
   };
+
+  // Find real matching units across all facilities for the AI recommendation
+  const aiMatchingUnits = useMemo(() => {
+    if (!activeAiRec) return [];
+    const all = companies.flatMap((c) =>
+      c.units.map((u) => ({
+        ...u,
+        facilityName: c.name,
+        facilityLocation: c.location,
+      }))
+    );
+    return all.filter((u) => isUnitAiMatch(u)).slice(0, 4);
+  }, [activeAiRec, companies]);
 
   const handleAiRecommend = (text: string) => {
     const q = text.toLowerCase().trim();
@@ -453,6 +505,23 @@ export default function StorageSpacesMarketplace() {
         // localStorage not available
       }
 
+      // Add real-time cross-portal notification for Business Portal & Admin
+      try {
+        addPortalNotification({
+          type: 'NEW_BOOKING',
+          title: 'New Unit Booking Confirmed',
+          message: `${clientName} booked ${selectedUnit.name} at ${selectedUnit.businessName} for ₹${selectedUnit.basePrice.toLocaleString('en-IN')}/mo.`,
+          link: '/business/bookings',
+          businessId: selectedUnit.businessId,
+          businessName: selectedUnit.businessName,
+          clientName,
+          unitCode: selectedUnit.name.split('•')[0]?.replace('Unit', '').trim() || selectedUnit.id,
+          amount: totalAmount,
+        });
+      } catch (notifErr) {
+        console.warn('Notification broadcast error:', notifErr);
+      }
+
       // Record payment
       await fetch('/api/payments', {
         method: 'POST',
@@ -586,48 +655,142 @@ export default function StorageSpacesMarketplace() {
 
         {/* Active AI Recommendation Result Box */}
         {activeAiRec && (
-          <div className="mt-2 p-4 rounded-xl bg-white border border-amber-200 shadow-xs space-y-3">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-stone-100 pb-3">
+          <div className="mt-2 p-5 rounded-2xl bg-white border-2 border-amber-400 shadow-md space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-amber-100 pb-3">
               <div className="space-y-0.5">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
-                  Recommended Size &amp; Type
+                <span className="text-[10px] font-bold uppercase tracking-wider text-amber-800 bg-amber-100 px-2.5 py-0.5 rounded-full border border-amber-300">
+                  AI Recommended Size &amp; Type
                 </span>
-                <h3 className="text-base font-bold text-navy-900 font-serif flex items-center gap-2 mt-1">
+                <h3 className="text-base sm:text-lg font-bold text-navy-900 font-serif flex items-center gap-2 mt-1">
                   <span>{activeAiRec.title}</span>
                 </h3>
               </div>
 
-              <button
-                type="button"
-                onClick={() => setFilterOnlyAiMatch(!filterOnlyAiMatch)}
-                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
-                  filterOnlyAiMatch
-                    ? 'bg-emerald-600 text-white shadow-xs'
-                    : 'bg-amber-100 text-amber-900 hover:bg-amber-200 border border-amber-300'
-                }`}
-              >
-                <CheckCircle2 className="h-3.5 w-3.5" />
-                <span>{filterOnlyAiMatch ? 'Filtering by AI Match (Active)' : 'Filter Only AI Matches'}</span>
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedCompanyId('ALL');
+                    setFilterOnlyAiMatch(true);
+                    document.getElementById('units-list-section')?.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-400 text-navy-950 transition cursor-pointer shadow-xs"
+                >
+                  <Search className="h-3.5 w-3.5" />
+                  <span>Explore These Options &darr;</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setFilterOnlyAiMatch(!filterOnlyAiMatch)}
+                  className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
+                    filterOnlyAiMatch
+                      ? 'bg-emerald-600 text-white shadow-xs'
+                      : 'bg-stone-100 text-stone-700 hover:bg-stone-200 border border-stone-200'
+                  }`}
+                >
+                  <CheckCircle2 className="h-3.5 w-3.5" />
+                  <span>{filterOnlyAiMatch ? 'AI Filter Active' : 'Filter AI'}</span>
+                </button>
+              </div>
             </div>
 
             <p className="text-xs text-stone-700 leading-relaxed">
               <strong className="text-navy-900">Why this recommendation?</strong> {activeAiRec.reasoning}
             </p>
 
-            <div className="flex flex-wrap items-center gap-2 pt-1">
-              <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider">
-                Recommended Features:
-              </span>
-              {activeAiRec.features.map((feat) => (
-                <span
-                  key={feat}
-                  className="inline-flex items-center gap-1 text-[11px] font-medium text-navy-900 bg-stone-100 px-2.5 py-0.5 rounded-md border border-stone-200"
-                >
-                  <ShieldCheck className="h-3 w-3 text-emerald-600" />
-                  <span>{feat}</span>
+            {/* Direct Matched Units Across Real Facilities */}
+            {aiMatchingUnits.length > 0 && (
+              <div className="space-y-2 pt-1 border-t border-stone-100">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-navy-900 uppercase tracking-wider flex items-center gap-1.5">
+                    <Sparkles className="h-3.5 w-3.5 text-amber-600" />
+                    <span>Real Certified Facilities Matching This Recommendation:</span>
+                  </span>
+                  <span className="text-[11px] text-stone-400">
+                    {aiMatchingUnits.length} spaces ready
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                  {aiMatchingUnits.map((u: any) => (
+                    <div
+                      key={u.id}
+                      className="p-3.5 rounded-xl border border-stone-200 bg-stone-50/70 hover:border-amber-400 hover:bg-amber-50/40 transition flex flex-col justify-between space-y-2.5 shadow-2xs"
+                    >
+                      <div>
+                        <div className="flex items-center justify-between gap-1">
+                          <span className="text-[10px] font-bold text-amber-800 uppercase tracking-wider truncate">
+                            {u.businessName || u.facilityName}
+                          </span>
+                          <span className="text-[9px] font-bold text-emerald-700 bg-emerald-100/80 px-1.5 py-0.2 rounded shrink-0">
+                            Verified
+                          </span>
+                        </div>
+                        <div className="text-xs font-bold text-navy-900 mt-1 line-clamp-1 font-serif">
+                          {u.name}
+                        </div>
+                        <div className="text-[11px] text-stone-500 mt-0.5 flex items-center gap-1.5">
+                          <span>{u.dimensions || '10ft x 10ft'}</span>
+                          <span>&bull;</span>
+                          <span className="text-stone-600 font-medium">{u.type}</span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between pt-2 border-t border-stone-200/60">
+                        <div>
+                          <span className="text-[9px] text-stone-400 block font-medium">Monthly</span>
+                          <span className="font-bold text-navy-900 text-xs">
+                            ₹{u.basePrice.toLocaleString('en-IN')}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() => setInspectingUnit(u)}
+                            className="px-2 py-1 rounded-lg border border-stone-300 hover:bg-white text-stone-700 font-bold text-[10px] cursor-pointer transition flex items-center gap-1"
+                          >
+                            <Eye className="h-3 w-3" />
+                            <span>Specs</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleOpenCheckout(u)}
+                            className="px-2.5 py-1 rounded-lg bg-navy-900 hover:bg-amber-600 text-white font-bold text-[10px] cursor-pointer shadow-2xs transition"
+                          >
+                            Book &rarr;
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pt-2 border-t border-stone-100 text-xs">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider">
+                  Features:
                 </span>
-              ))}
+                {activeAiRec.features.map((feat) => (
+                  <span
+                    key={feat}
+                    className="inline-flex items-center gap-1 text-[11px] font-medium text-navy-900 bg-stone-100 px-2 py-0.5 rounded-md border border-stone-200"
+                  >
+                    <ShieldCheck className="h-3 w-3 text-emerald-600" />
+                    <span>{feat}</span>
+                  </span>
+                ))}
+              </div>
+
+              <Link
+                href="/ai-space-advisor"
+                className="text-xs font-bold text-sky-700 hover:text-sky-800 hover:underline inline-flex items-center gap-1"
+              >
+                <span>Calculate room-by-room items in AI Advisor</span>
+                <ArrowRight className="h-3 w-3" />
+              </Link>
             </div>
           </div>
         )}
@@ -672,7 +835,7 @@ export default function StorageSpacesMarketplace() {
               View All Facilities
             </div>
             <div className="text-[10px] text-stone-500 mt-0.5">
-              Browse spaces across all 4 hubs
+              Browse spaces across all hubs
             </div>
           </button>
 
@@ -773,22 +936,41 @@ export default function StorageSpacesMarketplace() {
           Loading storage companies and available spaces...
         </div>
       ) : filteredCompanies.length === 0 ? (
-        <Card className="p-12 text-center border-stone-200 bg-white">
-          <Building2 className="mx-auto h-10 w-10 text-stone-400 mb-3" />
-          <h3 className="text-base font-bold text-navy-900">No Storage Spaces Found</h3>
-          <p className="text-xs text-stone-500 mt-1">
-            Try choosing a different company or clearing your filter criteria.
+        <Card className="p-12 text-center border-stone-200 bg-white space-y-3">
+          <Building2 className="mx-auto h-10 w-10 text-stone-400" />
+          <h3 className="text-base font-bold text-navy-900 font-serif">No Storage Spaces Matching Current Filter</h3>
+          <p className="text-xs text-stone-500 max-w-md mx-auto">
+            {selectedCompanyId !== 'ALL'
+              ? `The selected facility doesn't have spaces matching your search or type filter.`
+              : `No units matched your filter criteria.`}
           </p>
-          <Button
-            size="sm"
-            onClick={() => { setSelectedCompanyId('ALL'); setSelectedType('ALL'); setSearchTerm(''); }}
-            className="mt-4 bg-navy-900 text-white font-semibold text-xs"
-          >
-            Show All Storage Spaces
-          </Button>
+          <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
+            {selectedCompanyId !== 'ALL' && (
+              <Button
+                size="sm"
+                onClick={() => setSelectedCompanyId('ALL')}
+                className="bg-amber-500 hover:bg-amber-400 text-navy-950 font-bold text-xs cursor-pointer shadow-xs"
+              >
+                View Spaces Across All Companies
+              </Button>
+            )}
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => {
+                setSelectedCompanyId('ALL');
+                setSelectedType('ALL');
+                setSearchTerm('');
+                setFilterOnlyAiMatch(false);
+              }}
+              className="border-stone-200 text-navy-900 font-semibold text-xs cursor-pointer"
+            >
+              Reset All Filters
+            </Button>
+          </div>
         </Card>
       ) : (
-        <div className="space-y-6">
+        <div id="units-list-section" className="space-y-6">
           {filteredCompanies.map((company) => {
             const isExpanded = expandedCompanies.has(company.id);
             return (
@@ -876,44 +1058,79 @@ export default function StorageSpacesMarketplace() {
                               {unit.description}
                             </p>
 
-                            <div className="bg-white p-2.5 rounded-lg space-y-1 text-xs text-stone-700 border border-stone-200/60">
-                              {unit.dimensions && (
+                            {/* Rich Details Spec Grid */}
+                            <div className="bg-white p-3 rounded-xl space-y-2 text-xs text-stone-700 border border-stone-200/70 shadow-2xs">
+                              <div className="grid grid-cols-2 gap-2 pb-2 border-b border-stone-100">
                                 <div className="flex items-center gap-1.5">
-                                  <Layers className="h-3 w-3 text-stone-400" />
-                                  <span className="font-semibold text-navy-900">{unit.dimensions}</span>
+                                  <Layers className="h-3.5 w-3.5 text-amber-600 shrink-0" />
+                                  <span className="font-semibold text-navy-900 truncate">
+                                    {unit.dimensions || '10ft x 10ft (100 sq ft)'}
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-1.5">
+                                  <Thermometer className="h-3.5 w-3.5 text-sky-600 shrink-0" />
+                                  <span className="text-stone-700 font-medium truncate">
+                                    {unit.temperature || (unit.isClimateControlled ? '21.0°C • 44% RH' : 'Ventilated')}
+                                  </span>
+                                </div>
+                              </div>
+
+                              <div className="flex items-center gap-1.5 text-[11px] text-stone-600">
+                                <MapPin className="h-3.5 w-3.5 text-stone-400 shrink-0" />
+                                <span className="truncate">{unit.location || company.location || 'Verified Facility'}</span>
+                              </div>
+
+                              {unit.floorLevel && (
+                                <div className="text-[11px] text-stone-500 flex items-center gap-1">
+                                  <Clock className="h-3 w-3 text-stone-400 shrink-0" />
+                                  <span className="truncate">{unit.floorLevel}</span>
                                 </div>
                               )}
-                              {unit.location && (
-                                <div className="flex items-center gap-1.5">
-                                  <MapPin className="h-3 w-3 text-stone-400" />
-                                  <span className="text-stone-600">{unit.location}</span>
-                                </div>
-                              )}
-                              <div className="flex items-center gap-1.5">
-                                <ShieldCheck className="h-3 w-3 text-emerald-500" />
-                                <span className="text-stone-500 font-medium">Provided by {unit.businessName}</span>
+
+                              {/* Feature Tags */}
+                              <div className="flex flex-wrap gap-1 pt-1">
+                                {(unit.features || ['Keypad PIN', '24/7 CCTV', 'Fire Safe']).slice(0, 3).map((f, i) => (
+                                  <span
+                                    key={i}
+                                    className="text-[9px] font-semibold text-navy-900 bg-stone-100 px-1.5 py-0.5 rounded border border-stone-200"
+                                  >
+                                    {f}
+                                  </span>
+                                ))}
                               </div>
                             </div>
                           </div>
 
-                          <div className="p-5 pt-0 mt-auto border-t border-stone-100 flex items-center justify-between">
+                          <div className="p-5 pt-0 mt-auto border-t border-stone-100 flex items-center justify-between gap-2">
                             <div>
-                              <span className="text-xs text-stone-500 block font-medium">Monthly Rate</span>
+                              <span className="text-[11px] text-stone-400 block font-medium">Monthly Rate</span>
                               <div className="flex items-baseline gap-1">
                                 <span className="text-xl font-bold text-navy-900 font-serif">
-                                  ₹{unit.basePrice}
+                                  ₹{unit.basePrice.toLocaleString('en-IN')}
                                 </span>
                                 <span className="text-xs text-stone-500 font-medium">/mo</span>
                               </div>
                             </div>
 
-                            <Button
-                              onClick={() => handleOpenCheckout(unit)}
-                              className="bg-navy-900 hover:bg-amber-600 text-white font-bold text-xs px-4 py-2.5 rounded-lg shadow-sm transition-colors cursor-pointer flex items-center gap-1.5"
-                            >
-                              <span>Book &amp; Pay</span>
-                              <ArrowRight className="h-3.5 w-3.5" />
-                            </Button>
+                            <div className="flex items-center gap-1.5">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setInspectingUnit(unit)}
+                                className="border-stone-200 text-stone-700 hover:text-navy-900 text-xs font-semibold px-2.5 py-2 cursor-pointer flex items-center gap-1"
+                              >
+                                <Eye className="h-3.5 w-3.5" />
+                                <span>Specs</span>
+                              </Button>
+                              <Button
+                                size="sm"
+                                onClick={() => handleOpenCheckout(unit)}
+                                className="bg-navy-900 hover:bg-amber-600 text-white font-bold text-xs px-3.5 py-2 rounded-lg shadow-sm transition-colors cursor-pointer flex items-center gap-1"
+                              >
+                                <span>Book &amp; Pay</span>
+                                <ArrowRight className="h-3.5 w-3.5" />
+                              </Button>
+                            </div>
                           </div>
                         </Card>
                       );
@@ -924,6 +1141,195 @@ export default function StorageSpacesMarketplace() {
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* UNIT INSPECTION & FULL SPECS MODAL */}
+      {inspectingUnit && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-navy-950/70 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl border border-stone-200 overflow-hidden flex flex-col max-h-[92vh]">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-6 border-b border-stone-200 bg-gradient-to-r from-navy-900 via-navy-800 to-amber-950 text-white">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-amber-300 bg-amber-500/20 px-2.5 py-0.5 rounded-full border border-amber-400/30">
+                    {inspectingUnit.type}
+                  </span>
+                  <span className="text-xs text-stone-300 font-medium">
+                    Verified Storage Space
+                  </span>
+                </div>
+                <h2 className="text-xl font-bold font-serif text-white">
+                  {inspectingUnit.name}
+                </h2>
+                <div className="text-xs text-stone-300 flex items-center gap-1.5">
+                  <Building2 className="h-3.5 w-3.5 text-amber-400" />
+                  <span>Facility: <strong>{inspectingUnit.businessName}</strong></span>
+                  {inspectingUnit.location && <span>&bull; {inspectingUnit.location}</span>}
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setInspectingUnit(null)}
+                className="text-stone-300 hover:text-white p-2 rounded-lg hover:bg-white/10 transition cursor-pointer"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 overflow-y-auto space-y-5 text-sm text-stone-700">
+              {/* Unit Overview Description */}
+              <div className="p-4 rounded-xl bg-stone-50 border border-stone-200/80">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-stone-400 mb-1">
+                  Space Overview
+                </h4>
+                <p className="text-xs text-navy-900 leading-relaxed font-medium">
+                  {inspectingUnit.description}
+                </p>
+              </div>
+
+              {/* Dimensions & Capacity Grid */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="p-3 rounded-xl border border-stone-200 bg-white space-y-1 shadow-2xs">
+                  <span className="text-[10px] uppercase font-bold text-stone-400 block">Dimensions</span>
+                  <span className="text-sm font-bold text-navy-900">{inspectingUnit.dimensions || '10ft x 10ft'}</span>
+                </div>
+                <div className="p-3 rounded-xl border border-stone-200 bg-white space-y-1 shadow-2xs">
+                  <span className="text-[10px] uppercase font-bold text-stone-400 block">Floor Area</span>
+                  <span className="text-sm font-bold text-navy-900">{inspectingUnit.sqFt || 100} sq ft</span>
+                </div>
+                <div className="p-3 rounded-xl border border-stone-200 bg-white space-y-1 shadow-2xs">
+                  <span className="text-[10px] uppercase font-bold text-stone-400 block">Floor Level</span>
+                  <span className="text-xs font-semibold text-navy-900 line-clamp-1">{inspectingUnit.floorLevel || 'Ground Floor Direct'}</span>
+                </div>
+                <div className="p-3 rounded-xl border border-stone-200 bg-white space-y-1 shadow-2xs">
+                  <span className="text-[10px] uppercase font-bold text-stone-400 block">Availability</span>
+                  <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full inline-block">
+                    ● Available Now
+                  </span>
+                </div>
+              </div>
+
+              {/* IoT Live Sensors & Environment */}
+              <div className="rounded-xl border border-amber-200 bg-gradient-to-r from-amber-50/50 to-orange-50/30 p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Thermometer className="h-4 w-4 text-amber-700" />
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-amber-950 font-serif">
+                      Live Facility IoT Telemetry
+                    </h4>
+                  </div>
+                  <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md flex items-center gap-1">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                    Sensors Online
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+                  <div className="bg-white p-3 rounded-lg border border-amber-200/80">
+                    <span className="text-[10px] text-stone-500 block">Unit Temperature</span>
+                    <span className="text-base font-bold text-navy-900">
+                      {inspectingUnit.temperature || '21.4°C'}
+                    </span>
+                    <span className="text-[10px] text-emerald-600 block">Optimal Climate</span>
+                  </div>
+
+                  <div className="bg-white p-3 rounded-lg border border-amber-200/80">
+                    <span className="text-[10px] text-stone-500 block">Relative Humidity</span>
+                    <span className="text-base font-bold text-navy-900">
+                      {inspectingUnit.humidity || '44% RH'}
+                    </span>
+                    <span className="text-[10px] text-emerald-600 block">Zero Moisture Risk</span>
+                  </div>
+
+                  <div className="bg-white p-3 rounded-lg border border-amber-200/80">
+                    <span className="text-[10px] text-stone-500 block">Gate Access Tech</span>
+                    <span className="text-base font-bold text-navy-900">Digital Keypad</span>
+                    <span className="text-[10px] text-stone-500 block">PIN generated upon lease</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Security & Access Features */}
+              <div className="space-y-2">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-stone-400">
+                  Included Security &amp; Access Amenities
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                  {(inspectingUnit.features || ['Keypad PIN Access', '24/7 CCTV Monitoring', 'Fire Safety Sprinklers', 'Zero Humidity Risk']).map((feat, idx) => (
+                    <div key={idx} className="flex items-center gap-2 p-2.5 rounded-lg border border-stone-200 bg-white shadow-2xs">
+                      <ShieldCheck className="h-4 w-4 text-emerald-600 shrink-0" />
+                      <span className="font-medium text-navy-900">{feat}</span>
+                    </div>
+                  ))}
+                  <div className="flex items-center gap-2 p-2.5 rounded-lg border border-stone-200 bg-white shadow-2xs">
+                    <Clock className="h-4 w-4 text-sky-600 shrink-0" />
+                    <span className="font-medium text-navy-900">24/7 Unlimited Gate Access</span>
+                  </div>
+                  <div className="flex items-center gap-2 p-2.5 rounded-lg border border-stone-200 bg-white shadow-2xs">
+                    <CheckCircle2 className="h-4 w-4 text-amber-600 shrink-0" />
+                    <span className="font-medium text-navy-900">Instant Digital Contract &amp; Invoicing</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Pricing Summary */}
+              <div className="p-4 rounded-xl border border-stone-200 bg-stone-50 space-y-2">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-stone-600">Monthly Rental (Base Rate)</span>
+                  <span className="font-bold text-navy-900">₹{inspectingUnit.basePrice.toLocaleString('en-IN')}</span>
+                </div>
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-stone-600">Refundable Security Deposit</span>
+                  <span className="font-bold text-navy-900">₹{inspectingUnit.basePrice.toLocaleString('en-IN')} (100% Refundable)</span>
+                </div>
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-stone-600">GST (18% on Rent)</span>
+                  <span className="font-bold text-navy-900">₹{Math.round(inspectingUnit.basePrice * 0.18).toLocaleString('en-IN')}</span>
+                </div>
+                <div className="flex items-center justify-between text-xs pt-2 border-t border-stone-200">
+                  <span className="font-bold text-navy-900">Total Move-In (1st Month + Deposit + GST)</span>
+                  <span className="font-bold text-base text-amber-700 font-serif">
+                    ₹{(inspectingUnit.basePrice * 2 + Math.round(inspectingUnit.basePrice * 0.18)).toLocaleString('en-IN')}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-5 border-t border-stone-200 bg-stone-50 flex items-center justify-between">
+              <div>
+                <span className="text-[11px] text-stone-500 block">Monthly Rate</span>
+                <span className="text-xl font-bold text-navy-900 font-serif">
+                  ₹{inspectingUnit.basePrice.toLocaleString('en-IN')}
+                  <span className="text-xs font-normal text-stone-500">/mo</span>
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setInspectingUnit(null)}
+                  className="border-stone-300 text-stone-700 text-xs font-semibold cursor-pointer"
+                >
+                  Close
+                </Button>
+                <Button
+                  onClick={() => {
+                    const u = inspectingUnit;
+                    setInspectingUnit(null);
+                    handleOpenCheckout(u);
+                  }}
+                  className="bg-navy-900 hover:bg-amber-600 text-white font-bold text-xs px-5 py-2.5 rounded-xl shadow-xs transition cursor-pointer flex items-center gap-2"
+                >
+                  <span>Book This Space Now</span>
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 

@@ -6,7 +6,7 @@ import {
   Users,
   Calendar,
   Home,
-  DollarSign,
+  IndianRupee,
   AlertCircle,
   BrainCircuit,
   Check,
@@ -32,6 +32,7 @@ import { QuickActionsModal, ActionType } from './QuickActionsModal';
 import { StaffManagementSection } from './StaffManagementSection';
 import { BillingSubscriptionCard } from './BillingSubscriptionCard';
 import { ReportsAccessWidget } from './ReportsAccessWidget';
+import { DailyOperationalBar } from './DailyOperationalBar';
 
 export function DashboardOverview() {
   const shouldReduceMotion = useReducedMotion();
@@ -368,6 +369,9 @@ export function DashboardOverview() {
         </div>
       </div>
 
+      {/* STORENTIC Daily Facility Operations Bar */}
+      <DailyOperationalBar />
+
       {/* QUICK ACTIONS SHORTCUT BAR */}
       <div className="rounded-2xl border border-amber-200/90 bg-amber-50/40 p-5 space-y-3">
         <div className="flex items-center justify-between">
@@ -509,7 +513,7 @@ export function DashboardOverview() {
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-bold uppercase tracking-wider text-stone-500">Monthly Revenue</span>
               <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-50 text-amber-700">
-                <DollarSign className="h-4.5 w-4.5" />
+                <IndianRupee className="h-4.5 w-4.5" />
               </div>
             </div>
             <div className="mt-4">

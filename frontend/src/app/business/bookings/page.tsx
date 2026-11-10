@@ -12,6 +12,12 @@ const WAREHOUSE_NAMES: Record<string, string> = {
   'b2000000-0000-0000-0000-000000000002': 'Chicago MetroHub Micro-Warehousing',
   'b3000000-0000-0000-0000-000000000003': 'Seattle Pacific Port & Fleet Terminal',
   'b4000000-0000-0000-0000-000000000004': 'New York Empire Urban Storage & Depot',
+  'b-ind-01': 'Hindustan Cold Storage & Logistics',
+  'b-ind-02': 'Urban Attic Self-Storage',
+  'b-ind-03': 'Capital Vault Warehousing',
+  'b-ind-04': 'SafeKeep Pune Storage',
+  'b-ind-05': 'Metro Box Hyderabad',
+  'b-ind-06': 'SecureHub Chennai',
 };
 
 export default function BookingsPage() {

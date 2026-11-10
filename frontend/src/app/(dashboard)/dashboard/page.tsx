@@ -128,7 +128,7 @@ export default function ClientDashboardPage() {
               Welcome back, {userName}
             </h1>
             <p className="text-sm text-stone-300 max-w-xl">
-              You have <strong className="text-amber-400 font-semibold">3 active rented units</strong> across Austin, Chicago, and Seattle. Gate access, invoices, and maintenance controls are ready below.
+              You have <strong className="text-amber-400 font-semibold">3 active rented units</strong> across Mumbai, Bengaluru, and Delhi NCR. Gate access, invoices, and maintenance controls are ready below.
             </p>
           </div>
 
@@ -181,10 +181,10 @@ export default function ClientDashboardPage() {
               <CreditCard className="h-4 w-4" />
             </div>
           </div>
-          <div className="text-2xl font-bold text-navy-900">$320.00</div>
+          <div className="text-2xl font-bold text-navy-900">₹6,800</div>
           <div className="text-[11px] text-rose-700 font-bold flex items-center gap-1">
             <span>Due 28 Nov</span>
-            <span className="text-stone-400 font-normal">&bull; #CHI-208</span>
+            <span className="text-stone-400 font-normal">&bull; #BLR-D88</span>
           </div>
         </Card>
 
@@ -201,8 +201,8 @@ export default function ClientDashboardPage() {
           <div className="text-2xl font-mono font-bold text-navy-900 tracking-wider">
             #8429
           </div>
-          <div className="text-[11px] text-stone-500">
-            Austin SafeStore &bull; Keypad PIN
+          <div className="text-[11px] text-stone-500 truncate max-w-[170px]">
+            Hindustan Cold Storage &bull; PIN
           </div>
         </Card>
 
@@ -289,12 +289,12 @@ export default function ClientDashboardPage() {
             <div className="space-y-1">
               <div className="flex items-center gap-2">
                 <span className="text-xs font-bold text-rose-700 bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200">
-                  Lease Alert &bull; Unit #CHI-208
+                  Lease Alert &bull; Unit #BLR-D88
                 </span>
                 <span className="text-xs text-stone-500">Expires in 18 days (28 Nov 2026)</span>
               </div>
               <p className="text-xs text-stone-700 font-medium pt-0.5">
-                Switching Unit #CHI-208 from month-to-month to a <strong>3-month pre-paid renewal</strong> locks in a 10% loyalty discount ($288/mo instead of $320/mo) &mdash; <strong className="text-emerald-700 font-bold">saves $96.00 total</strong>.
+                Switching Unit #BLR-D88 (Urban Attic) from month-to-month to a <strong>3-month pre-paid renewal</strong> locks in a 10% loyalty discount (₹6,120/mo instead of ₹6,800/mo) &mdash; <strong className="text-emerald-700 font-bold">saves ₹2,040 total</strong>.
               </p>
             </div>
 
@@ -314,7 +314,7 @@ export default function ClientDashboardPage() {
             <div className="space-y-1">
               <div className="flex items-center gap-2">
                 <span className="text-xs font-bold text-sky-800 bg-sky-50 px-2 py-0.5 rounded-md border border-sky-200">
-                  Volumetric Estimate &bull; Unit #ATX-104
+                  Volumetric Estimate &bull; Unit #MUM-A101
                 </span>
                 <span className="text-xs text-stone-500">10x10 Climate-Controlled (100 sq ft)</span>
               </div>
@@ -339,12 +339,12 @@ export default function ClientDashboardPage() {
             <div className="space-y-1">
               <div className="flex items-center gap-2">
                 <span className="text-xs font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
-                  Telemetry Monitor &bull; Austin &amp; Chicago
+                  Telemetry Monitor &bull; Mumbai &amp; Bengaluru
                 </span>
                 <span className="text-xs text-emerald-700 font-bold">100% Online &bull; Optimal</span>
               </div>
               <p className="text-xs text-stone-700 font-medium pt-0.5">
-                Continuous IoT sensor telemetry for #ATX-104 (21.4°C, 44% RH) and #CHI-208 (19.8°C, 48% RH) shows zero humidity spikes over the last 14 days. Your electronics and fabrics are completely protected from mildew.
+                Continuous IoT sensor telemetry for #MUM-A101 (21.4°C, 44% RH) and #BLR-D88 (19.8°C, 48% RH) shows zero humidity spikes over the last 14 days. Your electronics and fabrics are completely protected from mildew.
               </p>
             </div>
 
@@ -392,17 +392,17 @@ export default function ClientDashboardPage() {
                 <div>
                   <div className="flex items-center gap-2">
                     <h3 className="font-bold text-navy-900 text-sm">
-                      Unit #ATX-104 &bull; 10x10 Climate-Controlled
+                      Unit #MUM-A101 &bull; 10x10 Climate-Controlled
                     </h3>
                     <Badge className="text-[10px] bg-emerald-50 text-emerald-800 border-emerald-200 font-bold">
                       Active
                     </Badge>
                   </div>
                   <p className="text-xs text-stone-500 mt-0.5">
-                    Austin SafeStore & Central Depot &bull; Ground Level Bay B-14
+                    Hindustan Cold Storage & Logistics &bull; Ground Level Bay B-14
                   </p>
                   <div className="text-[11px] text-stone-400 mt-1">
-                    PIN: <strong className="text-navy-900">#8429</strong> &bull; Next Rent: $145 due 15 Dec 2026
+                    PIN: <strong className="text-navy-900">#8429</strong> &bull; Next Rent: ₹8,500 due 15 Dec 2026
                   </div>
                 </div>
               </div>
@@ -428,17 +428,17 @@ export default function ClientDashboardPage() {
                 <div>
                   <div className="flex items-center gap-2">
                     <h3 className="font-bold text-navy-900 text-sm">
-                      Unit #CHI-208 &bull; 15x20 Commercial Warehouse Bay
+                      Unit #BLR-D88 &bull; 15x20 Commercial Warehouse Bay
                     </h3>
                     <Badge className="text-[10px] bg-rose-50 text-rose-800 border-rose-200 font-bold animate-pulse">
                       Rent Due Soon
                     </Badge>
                   </div>
                   <p className="text-xs text-stone-500 mt-0.5">
-                    Chicago MetroHub Micro-Depot &bull; Loading Dock Bay F-08
+                    Urban Attic Self-Storage &bull; Loading Dock Bay F-08
                   </p>
                   <div className="text-[11px] text-stone-400 mt-1">
-                    PIN: <strong className="text-navy-900">#6190</strong> &bull; Next Rent: $320 due 28 Nov 2026
+                    PIN: <strong className="text-navy-900">#6190</strong> &bull; Next Rent: ₹6,800 due 28 Nov 2026
                   </div>
                 </div>
               </div>
@@ -464,17 +464,17 @@ export default function ClientDashboardPage() {
                 <div>
                   <div className="flex items-center gap-2">
                     <h3 className="font-bold text-navy-900 text-sm">
-                      Unit #SEA-012 &bull; 10x20 Vehicle & Fleet Bay
+                      Unit #DEL-V12 &bull; 20x10 Covered Vehicle Bay
                     </h3>
                     <Badge className="text-[10px] bg-sky-50 text-sky-800 border-sky-200 font-bold">
                       Auto-Renew
                     </Badge>
                   </div>
                   <p className="text-xs text-stone-500 mt-0.5">
-                    Seattle Pacific Port Terminal &bull; Covered Bay V-12
+                    Capital Vault Warehousing &bull; Covered Ground Bay V-12
                   </p>
                   <div className="text-[11px] text-stone-400 mt-1">
-                    PIN: <strong className="text-navy-900">#3374</strong> &bull; Next Rent: $210 due 10 Dec 2026
+                    PIN: <strong className="text-navy-900">#3374</strong> &bull; Next Rent: ₹16,500 due 10 Dec 2026
                   </div>
                 </div>
               </div>

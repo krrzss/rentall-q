@@ -21,6 +21,7 @@ import {
   FileText,
   Check,
 } from 'lucide-react';
+import { addPortalNotification } from '@/lib/realtimeSync';
 
 interface Invoice {
   id: string;
@@ -54,31 +55,46 @@ export default function ClientPaymentsPage() {
     const baselineInvoices: Invoice[] = [
       {
         id: 'inv-101',
-        invoiceNo: 'INV-2026-0881',
-        unitName: 'Storage Locker #102',
-        dimensions: '5x5 Standard',
-        facilityName: 'Austin SafeStore & Central Depot',
-        amount: 20000,
-        subtotal: 16950,
-        tax: 3050,
+        invoiceNo: 'INV-2026-00841',
+        unitName: 'Unit #MUM-A101 • Climate Locker',
+        dimensions: '10x10 Climate',
+        facilityName: 'Hindustan Cold Storage & Logistics',
+        amount: 8500,
+        subtotal: 7203,
+        tax: 1297,
         status: 'PAID',
-        dueDate: 'Mar 01, 2026',
-        paidDate: 'Mar 01, 2026',
-        paymentMethod: 'Credit Card (•••• 4242)',
+        dueDate: 'Nov 01, 2026',
+        paidDate: 'Nov 01, 2026',
+        paymentMethod: 'UPI Checkout (•••• 9820)',
         transactionId: 'TXN-902144',
       },
       {
         id: 'inv-102',
-        invoiceNo: 'INV-2026-0942',
-        unitName: 'Climate-Controlled Bay #4B',
-        dimensions: '10x10 Climate',
-        facilityName: 'Chicago MetroHub Micro-Warehousing',
-        amount: 9600,
-        subtotal: 8135,
-        tax: 1465,
+        invoiceNo: 'INV-2026-00502',
+        unitName: 'Unit #BLR-D88 • Drive-Up Bay',
+        dimensions: '8x8 Drive-Up',
+        facilityName: 'Urban Attic Self-Storage',
+        amount: 6800,
+        subtotal: 5763,
+        tax: 1037,
         status: 'DUE',
-        dueDate: 'Apr 01, 2026',
+        dueDate: 'Nov 28, 2026',
         paymentMethod: 'Pending Payment',
+      },
+      {
+        id: 'inv-103',
+        invoiceNo: 'INV-2026-00888',
+        unitName: 'Unit #DEL-V12 • Vehicle & Equipment Bay',
+        dimensions: '20x10 Covered Bay',
+        facilityName: 'Capital Vault Warehousing',
+        amount: 16500,
+        subtotal: 13983,
+        tax: 2517,
+        status: 'PAID',
+        dueDate: 'Oct 10, 2026',
+        paidDate: 'Oct 10, 2026',
+        paymentMethod: 'Netbanking (HDFC Bank)',
+        transactionId: 'TXN-DEL-882194',
       },
     ];
 
@@ -180,12 +196,71 @@ export default function ClientPaymentsPage() {
       )
     );
 
+    // Broadcast real-time payment notification to Business Portal & Admin
+    try {
+      addPortalNotification({
+        type: 'PAYMENT_RECEIVED',
+        title: 'Rent Settlement Cleared',
+        message: `₹${payingInvoice.amount.toLocaleString('en-IN')} received for ${payingInvoice.unitName} at ${payingInvoice.facilityName}.`,
+        link: '/business/payments',
+        businessName: payingInvoice.facilityName,
+        clientName: 'Tenant Client',
+        unitCode: payingInvoice.unitName,
+        amount: payingInvoice.amount,
+      });
+    } catch (notifErr) {
+      console.warn('Payment notification error:', notifErr);
+    }
+
     setIsProcessingPay(false);
     setPaySuccessMsg(`Payment of ₹${payingInvoice.amount.toLocaleString('en-IN')} successful for ${payingInvoice.invoiceNo}!`);
     setTimeout(() => {
       setPaySuccessMsg(null);
       setPayingInvoice(null);
     }, 2500);
+  };
+
+  const handleDownloadReceipt = (inv: Invoice) => {
+    const content = `=======================================================
+          RENTALL-Q OFFICIAL RENTAL TAX INVOICE
+=======================================================
+Invoice Number   : ${inv.invoiceNo}
+Transaction ID   : ${inv.transactionId || 'TXN-ONLINE-SETTLED'}
+Invoice Date     : ${inv.paidDate || inv.dueDate}
+Payment Status   : ${inv.status} (DIGITALLY VERIFIED)
+Payment Channel  : ${inv.paymentMethod || 'Online Gateway'}
+
+-------------------------------------------------------
+FACILITY & UNIT DETAILS:
+-------------------------------------------------------
+Facility Name    : ${inv.facilityName}
+Storage Unit     : ${inv.unitName}
+Dimensions       : ${inv.dimensions || 'Standard'}
+Platform Reg     : RentAll-Q Certified Partner Network
+
+-------------------------------------------------------
+FINANCIAL STATEMENT (INR):
+-------------------------------------------------------
+Base Rental Fee  : ₹${inv.subtotal.toLocaleString('en-IN')}
+GST (18% Tax)    : ₹${inv.tax.toLocaleString('en-IN')}
+=======================================================
+NET AMOUNT PAID  : ₹${inv.amount.toLocaleString('en-IN')}
+=======================================================
+
+Authorized Digital Signature:
+RentAll-Q Cloud Accounting Ledger & Automated Depots
+This document serves as an official electronic receipt.
+=======================================================`;
+
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `RentAllQ_Receipt_${inv.invoiceNo}.txt`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   return (
@@ -510,18 +585,27 @@ export default function ClientPaymentsPage() {
                 <Button
                   size="sm"
                   variant="outline"
+                  onClick={() => handleDownloadReceipt(selectedReceipt)}
+                  className="text-xs font-semibold border-amber-300 bg-amber-50 text-amber-900 hover:bg-amber-100 cursor-pointer flex items-center gap-1.5"
+                >
+                  <Download className="h-3.5 w-3.5" />
+                  <span>Download Receipt</span>
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
                   onClick={() => window.print()}
                   className="text-xs font-semibold border-stone-200 text-navy-900 cursor-pointer flex items-center gap-1.5"
                 >
                   <Printer className="h-3.5 w-3.5" />
-                  <span>Print Receipt</span>
+                  <span>Print</span>
                 </Button>
                 <Button
                   size="sm"
                   onClick={() => setSelectedReceipt(null)}
                   className="bg-navy-900 hover:bg-navy-800 text-white font-bold text-xs cursor-pointer"
                 >
-                  Close Receipt
+                  Close
                 </Button>
               </div>
             </div>

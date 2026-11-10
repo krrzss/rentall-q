@@ -11,13 +11,14 @@ import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
-import { RefreshCw, Search, Plus, LayoutGrid, List, Calendar as CalendarIcon, CheckSquare, Check } from 'lucide-react';
+import { RefreshCw, Search, Plus, LayoutGrid, List, Calendar as CalendarIcon, CheckSquare, Check, Layers } from 'lucide-react';
+import { VisualFloorPlan } from '@/features/rental-units/components/VisualFloorPlan';
 
 interface RentalUnitListProps {
   refreshKey?: number;
 }
 
-type ViewMode = 'grid' | 'table' | 'calendar';
+type ViewMode = 'floorplan' | 'grid' | 'table' | 'calendar';
 
 export function RentalUnitList({ refreshKey = 0 }: RentalUnitListProps) {
   const { rentalUnits, loading, error, updateRentalUnit, deleteRentalUnit, refresh } = useRentalUnits();
@@ -28,7 +29,7 @@ export function RentalUnitList({ refreshKey = 0 }: RentalUnitListProps) {
   const [isCreating, setIsCreating] = useState(false);
 
   // View Mode & Bulk Selection States
-  const [viewMode, setViewMode] = useState<ViewMode>('grid');
+  const [viewMode, setViewMode] = useState<ViewMode>('floorplan');
   const [search, setSearch] = useState('');
   const [selectedUnitIds, setSelectedUnitIds] = useState<string[]>([]);
   const [bulkActionSuccess, setBulkActionSuccess] = useState<string | null>(null);
@@ -84,6 +85,15 @@ export function RentalUnitList({ refreshKey = 0 }: RentalUnitListProps) {
         <div className="flex flex-wrap items-center gap-3">
           {/* View Mode Switcher */}
           <div className="inline-flex rounded-xl border border-stone-200 bg-cream-50 p-1">
+            <button
+              onClick={() => setViewMode('floorplan')}
+              className={`p-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 transition cursor-pointer ${
+                viewMode === 'floorplan' ? 'bg-white text-navy-900 shadow-xs font-bold' : 'text-stone-500 hover:text-navy-900'
+              }`}
+            >
+              <Layers className="h-3.5 w-3.5 text-amber-600" />
+              <span className="hidden sm:inline">2D Floor Plan</span>
+            </button>
             <button
               onClick={() => setViewMode('grid')}
               className={`p-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 transition cursor-pointer ${
@@ -198,6 +208,11 @@ export function RentalUnitList({ refreshKey = 0 }: RentalUnitListProps) {
       {loading ? (
         <div className="py-12 text-center text-sm text-stone-500 font-medium">Loading rental units...</div>
       ) : null}
+
+      {/* VIEW MODE: 2D VISUAL FLOOR PLAN */}
+      {viewMode === 'floorplan' && (
+        <VisualFloorPlan />
+      )}
 
       {/* VIEW MODE 1: GRID VIEW */}
       {!loading && viewMode === 'grid' && filteredUnits.length > 0 && (

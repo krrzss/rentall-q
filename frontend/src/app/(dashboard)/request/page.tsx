@@ -18,6 +18,7 @@ import {
   PhoneCall,
   Info,
 } from 'lucide-react';
+import { addPortalNotification } from '@/lib/realtimeSync';
 
 interface SupportTicket {
   id: string;
@@ -33,8 +34,8 @@ interface SupportTicket {
 const PAST_TICKETS: SupportTicket[] = [
   {
     id: 'TKT-8910',
-    unitNumber: '#ATX-104',
-    facilityName: 'Austin SafeStore & Central Depot',
+    unitNumber: '#MUM-A101',
+    facilityName: 'Hindustan Cold Storage & Logistics',
     category: 'Overhead Light Bulb',
     subject: 'Bay overhead fixture flickering on entry',
     date: '02 Nov 2026',
@@ -43,8 +44,8 @@ const PAST_TICKETS: SupportTicket[] = [
   },
   {
     id: 'TKT-8944',
-    unitNumber: '#CHI-208',
-    facilityName: 'Chicago MetroHub Micro-Depot',
+    unitNumber: '#BLR-D88',
+    facilityName: 'Urban Attic Self-Storage',
     category: 'Gate Keypad Check',
     subject: 'Keypad was beeping 3 times when entering code',
     date: '06 Nov 2026',
@@ -54,7 +55,7 @@ const PAST_TICKETS: SupportTicket[] = [
 ];
 
 export default function ClientRequestPage() {
-  const [selectedUnit, setSelectedUnit] = useState('#ATX-104 (Austin SafeStore & Central Depot)');
+  const [selectedUnit, setSelectedUnit] = useState('#MUM-A101 (Hindustan Cold Storage & Logistics)');
   const [category, setCategory] = useState('gate');
   const [subject, setSubject] = useState('');
   const [details, setDetails] = useState('');
@@ -105,6 +106,19 @@ export default function ClientRequestPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitted(true);
+
+    try {
+      addPortalNotification({
+        type: 'MAINTENANCE_TICKET',
+        title: `Service Request: ${subject || category.toUpperCase()}`,
+        message: `${selectedUnit}: [${category.toUpperCase()}] ${details.slice(0, 80) || 'Inspection requested'}`,
+        link: '/business/rental-units',
+        clientName: 'Tenant Client',
+        unitCode: selectedUnit.split(' ')[0],
+      });
+    } catch (notifErr) {
+      console.warn('Ticket notification error:', notifErr);
+    }
   };
 
   return (
@@ -172,9 +186,9 @@ export default function ClientRequestPage() {
                     onChange={(e) => setSelectedUnit(e.target.value)}
                     className="w-full rounded-xl border border-stone-300 bg-white p-2.5 text-xs text-navy-900 focus:border-amber-500 focus:outline-none"
                   >
-                    <option>#ATX-104 (Austin SafeStore &amp; Central Depot &bull; 10x10)</option>
-                    <option>#CHI-208 (Chicago MetroHub Micro-Depot &bull; 15x20)</option>
-                    <option>#SEA-012 (Seattle Pacific Port &bull; 10x20 Vehicle Bay)</option>
+                    <option>#MUM-A101 (Hindustan Cold Storage &amp; Logistics &bull; 10x10)</option>
+                    <option>#BLR-D88 (Urban Attic Self-Storage &bull; 15x20)</option>
+                    <option>#DEL-V12 (Capital Vault Warehousing &bull; 20x10 Bay)</option>
                     <option>General Account / Billing Question</option>
                   </select>
                 </div>
