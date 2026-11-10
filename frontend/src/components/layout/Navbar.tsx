@@ -62,6 +62,16 @@ export function Navbar() {
             // fallback
           }
 
+          if (typeof document !== 'undefined' && document.cookie.includes('rentallq_demo_session=CLIENT')) {
+            setProfile({
+              name: 'Tanisha Sharma',
+              role: 'CLIENT',
+              email: 'tanisha@rentallq.com',
+            });
+            setLoading(false);
+            return;
+          }
+
           setLoading(false);
           return;
         }

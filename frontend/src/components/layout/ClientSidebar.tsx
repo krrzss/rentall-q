@@ -2,11 +2,22 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Calendar, CreditCard, Send, UserCheck, Building2 } from 'lucide-react';
+import {
+  LayoutDashboard,
+  Calendar,
+  CreditCard,
+  Send,
+  UserCheck,
+  Building2,
+  BrainCircuit,
+  Sparkles,
+} from 'lucide-react';
 
 const clientNavItems = [
-  { label: 'Browse Storage Spaces', href: '/storage-spaces', icon: Building2 },
-  { label: 'My Bookings', href: '/dashboard', icon: Calendar },
+  { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+  { label: 'My Bookings', href: '/my-bookings', icon: Calendar },
+  { label: 'AI Storage Advisor', href: '/ai-space-advisor', icon: BrainCircuit, isAi: true },
+  { label: 'Browse Spaces', href: '/storage-spaces', icon: Building2 },
   { label: 'My Payments', href: '/my-payments', icon: CreditCard },
   { label: 'Make a Request', href: '/request', icon: Send },
 ];
@@ -42,18 +53,25 @@ export function ClientSidebar() {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex items-center gap-3 rounded-lg px-3.5 py-2.5 text-sm font-medium transition-all ${
+                className={`flex items-center justify-between rounded-lg px-3.5 py-2.5 text-sm font-medium transition-all ${
                   isActive
                     ? 'bg-amber-500/10 text-amber-700 font-semibold shadow-xs'
                     : 'text-stone-600 hover:bg-cream-200 hover:text-navy-900'
                 }`}
               >
-                <Icon
-                  className={`h-4 w-4 transition-colors ${
-                    isActive ? 'text-amber-600' : 'text-stone-400 group-hover:text-stone-600'
-                  }`}
-                />
-                <span>{item.label}</span>
+                <div className="flex items-center gap-3">
+                  <Icon
+                    className={`h-4 w-4 transition-colors ${
+                      isActive ? 'text-amber-600' : 'text-stone-400 group-hover:text-stone-600'
+                    }`}
+                  />
+                  <span>{item.label}</span>
+                </div>
+                {item.isAi && (
+                  <span className="text-[10px] font-bold uppercase tracking-wider bg-amber-500 text-navy-950 px-1.5 py-0.2 rounded-md shadow-2xs">
+                    AI
+                  </span>
+                )}
               </Link>
             );
           })}

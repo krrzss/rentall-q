@@ -6,9 +6,12 @@ export async function middleware(request: NextRequest) {
     request,
   });
 
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co';
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-anon-key';
+
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    supabaseUrl,
+    supabaseKey,
     {
       cookies: {
         getAll() {
@@ -38,6 +41,7 @@ export async function middleware(request: NextRequest) {
     pathname === '/' ||
     pathname === '/login' ||
     pathname === '/register' ||
+    pathname.startsWith('/storage-spaces') ||
     pathname.startsWith('/business/login') ||
     pathname.startsWith('/business/register') ||
     pathname.startsWith('/admin/login') ||
@@ -52,6 +56,8 @@ export async function middleware(request: NextRequest) {
   const isAdminRoute = pathname.startsWith('/admin/dashboard');
   const isClientRoute =
     (pathname.startsWith('/dashboard') ||
+      pathname.startsWith('/my-bookings') ||
+      pathname.startsWith('/ai-space-advisor') ||
       pathname.startsWith('/storage-spaces') ||
       pathname.startsWith('/my-payments') ||
       pathname.startsWith('/request')) &&
@@ -144,9 +150,10 @@ export async function middleware(request: NextRequest) {
   }
 
   // 3. CLIENT PORTAL ISOLATION:
-  // Client routes require an authenticated user
+  // Client routes require an authenticated user or active tenant demo session
+  const hasClientSession = Boolean(user || demoCookie === 'CLIENT');
   if (isClientRoute) {
-    if (!user) {
+    if (!hasClientSession) {
       const url = request.nextUrl.clone();
       url.pathname = '/login';
       return NextResponse.redirect(url);

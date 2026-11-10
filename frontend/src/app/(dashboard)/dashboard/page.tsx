@@ -33,84 +33,27 @@ import {
   QrCode,
   X,
   ExternalLink,
+  ChevronRight,
+  PlusCircle,
+  FileText,
 } from 'lucide-react';
 
-interface ClientBooking {
-  id: string;
-  unitId: string;
-  unitName: string;
-  unitType?: string;
-  location?: string;
-  dimensions?: string;
-  startDate: string;
-  endDate: string;
-  totalAmount: number;
-  monthlyRate?: number;
-  durationMonths?: number;
-  status: string;
-  paymentMethod?: string;
-  transactionId?: string;
-  bookedAt: string;
-  gatePin?: string;
-}
-
-const DEFAULT_TENANT_UNITS: ClientBooking[] = [
-  {
-    id: 'booking-seed-001',
-    unitId: 'unit-seed-101',
-    unitName: 'Unit B-204 (Climate Controlled Large)',
-    unitType: 'Climate Controlled',
-    location: 'Austin SafeStore – 4200 South Congress Ave, Austin, TX',
-    dimensions: '10ft x 15ft (150 sq ft)',
-    startDate: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString(),
-    endDate: new Date(Date.now() + 18 * 24 * 60 * 60 * 1000).toISOString(),
-    totalAmount: 18500,
-    monthlyRate: 18500,
-    durationMonths: 3,
-    status: 'CONFIRMED',
-    paymentMethod: 'UPI / HDFC Auto-Pay',
-    transactionId: 'TXN-9028148-HDFC',
-    bookedAt: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString(),
-    gatePin: '4819',
-  },
-];
-
-export default function SmartDashboardPage() {
+export default function ClientDashboardPage() {
   const router = useRouter();
-  const [userName, setUserName] = useState<string>('Client');
+  const [userName, setUserName] = useState('Client');
   const [loading, setLoading] = useState(true);
-  const [myBookings, setMyBookings] = useState<ClientBooking[]>([]);
 
-  // Gate Opener State
-  const [gateUnlocked, setGateUnlocked] = useState(false);
-  const [gateCountdown, setGateCountdown] = useState(0);
+  // Quick Unlock timer
+  const [isUnlocking, setIsUnlocking] = useState(false);
+  const [unlockSeconds, setUnlockSeconds] = useState(0);
   const [copiedPin, setCopiedPin] = useState(false);
 
-  // Modals
-  const [vacateModalBooking, setVacateModalBooking] = useState<ClientBooking | null>(null);
-  const [vacateReason, setVacateReason] = useState('Relocation / Moved houses');
-  const [vacateDate, setVacateDate] = useState('');
-  const [vacateSubmitted, setVacateSubmitted] = useState(false);
-
-  const [guestPassBooking, setGuestPassBooking] = useState<ClientBooking | null>(null);
-  const [guestName, setGuestName] = useState('');
-  const [guestPhone, setGuestPhone] = useState('');
-  const [guestPinGenerated, setGuestPinGenerated] = useState<string | null>(null);
+  // AI Advisor State
+  const [activeAiTab, setActiveAiTab] = useState<'savings' | 'space' | 'climate'>('savings');
+  const [claimedDiscount, setClaimedDiscount] = useState(false);
 
   useEffect(() => {
     async function checkRole() {
-      // If user has an active business warehouse session, direct to business dashboard
-      try {
-        const bizRes = await fetch('/api/auth/business-session');
-        const bizJson = await bizRes.json();
-        if (bizJson.success && bizJson.warehouse) {
-          router.replace('/business/dashboard');
-          return;
-        }
-      } catch {
-        // ignore
-      }
-
       const supabase = createClient();
       try {
         const {
@@ -124,695 +67,528 @@ export default function SmartDashboardPage() {
             .eq('id', user.id)
             .maybeSingle();
 
-          const resolvedRole = profile?.role || 'CLIENT';
           setUserName(profile?.name || user.email?.split('@')[0] || 'Client');
-
-          if (resolvedRole === 'BUSINESS_OWNER' || resolvedRole === 'MANAGER' || resolvedRole === 'STAFF') {
-            router.replace('/business/dashboard');
-            return;
-          }
+        } else {
+          setUserName('Tanisha Sharma');
         }
       } catch {
-        // ignore
+        setUserName('Tanisha Sharma');
       } finally {
         setLoading(false);
       }
     }
 
     checkRole();
-  }, [router]);
-
-  // Load bookings from localStorage with fallback to default realistic tenancy
-  useEffect(() => {
-    try {
-      const stored = JSON.parse(localStorage.getItem('rentallq_my_bookings') || '[]');
-      if (Array.isArray(stored) && stored.length > 0) {
-        setMyBookings(stored);
-      } else {
-        setMyBookings(DEFAULT_TENANT_UNITS);
-      }
-    } catch {
-      setMyBookings(DEFAULT_TENANT_UNITS);
-    }
   }, []);
 
-  // Gate opener countdown effect
-  useEffect(() => {
-    let timer: NodeJS.Timeout;
-    if (gateUnlocked && gateCountdown > 0) {
-      timer = setInterval(() => {
-        setGateCountdown((prev) => {
-          if (prev <= 1) {
-            setGateUnlocked(false);
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    }
-    return () => clearInterval(timer);
-  }, [gateUnlocked, gateCountdown]);
-
-  const handleUnlockGate = () => {
-    setGateUnlocked(true);
-    setGateCountdown(45);
+  const handleRemoteUnlock = () => {
+    setIsUnlocking(true);
+    setUnlockSeconds(45);
+    const interval = setInterval(() => {
+      setUnlockSeconds((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          setIsUnlocking(false);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
   };
 
   const handleCopyPin = (pin: string) => {
-    if (navigator?.clipboard) {
-      navigator.clipboard.writeText(pin);
-      setCopiedPin(true);
-      setTimeout(() => setCopiedPin(false), 2000);
-    }
-  };
-
-  const handleGenerateGuestPass = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!guestName) return;
-    const randomPin = Math.floor(1000 + Math.random() * 9000).toString();
-    setGuestPinGenerated(randomPin);
-  };
-
-  const formatDate = (dateStr: string) => {
-    try {
-      return new Date(dateStr).toLocaleDateString('en-IN', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric',
-      });
-    } catch {
-      return dateStr;
-    }
+    navigator.clipboard.writeText(pin);
+    setCopiedPin(true);
+    setTimeout(() => setCopiedPin(false), 2000);
   };
 
   if (loading) {
     return (
-      <div className="space-y-6 text-navy-900 font-sans max-w-6xl animate-pulse">
-        <div className="h-8 w-64 bg-stone-200 rounded-lg" />
-        <div className="h-28 bg-stone-200 rounded-2xl" />
-        <div className="grid gap-5 sm:grid-cols-3">
-          <div className="h-28 bg-stone-200 rounded-xl" />
-          <div className="h-28 bg-stone-200 rounded-xl" />
-          <div className="h-28 bg-stone-200 rounded-xl" />
-        </div>
+      <div className="flex h-64 items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-navy-900 border-t-amber-500" />
       </div>
     );
   }
 
-  const primaryBooking = myBookings[0];
-  const activeCount = myBookings.filter((b) => b.status === 'CONFIRMED' || b.status === 'ACTIVE').length;
-  const totalPaid = myBookings.reduce((sum, b) => sum + (b.totalAmount || 0), 0);
-
   return (
-    <div className="space-y-8 text-navy-900 font-sans max-w-6xl">
-      {/* Welcome Banner */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-navy-900 via-navy-800 to-amber-950 p-7 text-white shadow-xl border border-navy-700 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-        <div className="space-y-2 max-w-xl">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 text-xs font-bold border border-amber-500/30">
-            <Sparkles className="h-3.5 w-3.5 text-amber-400" />
-            <span>Tenant Self-Service Hub</span>
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight font-serif text-white">
-            Welcome back, {userName}!
-          </h1>
-          <p className="text-xs sm:text-sm text-stone-300">
-            Manage your storage units, operate keypad gate entry, monitor climate sensors, or pay invoices effortlessly.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-3 shrink-0 flex-wrap">
-          <Link href="/storage-spaces">
-            <Button className="bg-amber-500 hover:bg-amber-600 text-navy-950 font-bold text-xs sm:text-sm px-5 py-3 rounded-xl shadow-md transition flex items-center gap-2">
-              <Building2 className="h-4 w-4" />
-              <span>Browse Spaces</span>
-              <ArrowRight className="h-4 w-4" />
-            </Button>
-          </Link>
-          <Link href="/my-payments">
-            <Button variant="outline" className="border-stone-400 text-white hover:bg-white/10 text-xs sm:text-sm px-4 py-3 rounded-xl">
-              <CreditCard className="h-4 w-4 mr-1.5" />
-              <span>Invoices</span>
-            </Button>
-          </Link>
-        </div>
-      </div>
-
-      {/* Digital Gate Access Keypad Widget */}
-      {primaryBooking && (
-        <Card className="p-6 border-amber-300/80 bg-gradient-to-r from-amber-50/70 via-white to-amber-50/40 shadow-sm relative overflow-hidden">
-          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
-            <div className="space-y-1.5">
-              <div className="flex items-center gap-2">
-                <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-500 text-navy-950 font-bold">
-                  <KeyRound className="h-4 w-4" />
-                </span>
-                <h2 className="text-base font-bold text-navy-900 font-serif">
-                  Facility Gate &amp; Keypad Access
-                </h2>
-                <Badge variant="outline" className="border-emerald-300 bg-emerald-50 text-emerald-800 text-[10px] font-bold">
-                  Active Lease Privileges
-                </Badge>
-              </div>
-              <p className="text-xs text-stone-600 max-w-2xl">
-                Use this PIN code on any keypad at South Entry Gate 2 or North Cargo Bay. Alternatively, tap the Remote Unlock button when within 50 meters of the gate.
-              </p>
-            </div>
-
-            <div className="flex items-center gap-4 flex-wrap w-full lg:w-auto justify-start lg:justify-end">
-              {/* PIN Pill */}
-              <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-stone-300 bg-white shadow-xs">
-                <div>
-                  <span className="text-[10px] uppercase font-bold text-stone-400 block leading-tight">
-                    Keypad PIN
-                  </span>
-                  <span className="text-xl font-mono font-bold tracking-widest text-navy-950">
-                    #{primaryBooking.gatePin || '4819'}
-                  </span>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => handleCopyPin(primaryBooking.gatePin || '4819')}
-                  title="Copy PIN"
-                  className="p-1.5 hover:bg-stone-100 rounded-lg text-stone-500 hover:text-navy-900 transition cursor-pointer"
-                >
-                  {copiedPin ? <Check className="h-4 w-4 text-emerald-600" /> : <Copy className="h-4 w-4" />}
-                </button>
-              </div>
-
-              {/* Remote Gate Unlock Trigger */}
-              <Button
-                onClick={handleUnlockGate}
-                disabled={gateUnlocked}
-                className={`font-bold text-xs sm:text-sm px-5 py-3 rounded-xl shadow-md transition flex items-center gap-2 cursor-pointer ${
-                  gateUnlocked
-                    ? 'bg-emerald-600 text-white border-emerald-600'
-                    : 'bg-navy-900 hover:bg-navy-800 text-white'
-                }`}
-              >
-                {gateUnlocked ? (
-                  <>
-                    <Unlock className="h-4 w-4 animate-bounce text-amber-300" />
-                    <span>Gate Open ({gateCountdown}s)</span>
-                  </>
-                ) : (
-                  <>
-                    <Unlock className="h-4 w-4 text-amber-400" />
-                    <span>Tap to Unlock Gate</span>
-                  </>
-                )}
-              </Button>
-
-              {/* Guest Pass Button */}
-              <Button
-                variant="outline"
-                onClick={() => setGuestPassBooking(primaryBooking)}
-                className="text-xs font-semibold border-stone-300 hover:border-amber-400 px-3.5 py-3 rounded-xl"
-              >
-                <UserCheck className="h-3.5 w-3.5 mr-1 text-stone-500" />
-                <span>+ Mover / Guest Pass</span>
-              </Button>
-            </div>
-          </div>
-
-          {gateUnlocked && (
-            <div className="mt-4 pt-3 border-t border-amber-200/60 flex items-center justify-between text-xs text-emerald-800 font-semibold bg-emerald-50/80 px-4 py-2 rounded-lg">
-              <span className="flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
-                South Main Keypad Gate has been triggered. Safe transit window active.
+    <div className="space-y-6">
+      {/* ── 1. WELCOME HERO BANNER ── */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-navy-900 via-navy-800 to-navy-900 p-6 sm:p-8 text-white shadow-md border border-stone-800">
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-5">
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold uppercase tracking-wider text-amber-400 bg-amber-400/10 border border-amber-400/20 px-2.5 py-0.5 rounded-full">
+                Tenant Self-Service Hub
               </span>
-              <span className="font-mono text-emerald-950 font-bold">{gateCountdown} seconds left</span>
+              <span className="text-xs text-stone-300">
+                Verified Customer Account
+              </span>
             </div>
-          )}
-        </Card>
-      )}
-
-      {/* Quick Metrics */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-        <Card className="p-5 border-stone-200 bg-white">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs font-semibold text-stone-500 uppercase tracking-wider">
-                Active Leased Spaces
-              </p>
-              <p className="text-2xl font-bold text-navy-900 font-serif mt-1">
-                {activeCount} Unit{activeCount !== 1 ? 's' : ''}
-              </p>
-            </div>
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-amber-50 border border-amber-100 text-amber-600">
-              <Building2 className="h-5 w-5" />
-            </div>
-          </div>
-          <p className="text-xs text-stone-500 mt-3 flex items-center gap-1.5">
-            <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
-            <span>{primaryBooking?.unitName || 'Verified clean storage facility'}</span>
-          </p>
-        </Card>
-
-        <Card className="p-5 border-stone-200 bg-white">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs font-semibold text-stone-500 uppercase tracking-wider">
-                Total Paid (YTD)
-              </p>
-              <p className="text-2xl font-bold text-navy-900 font-serif mt-1">
-                ₹{totalPaid.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-              </p>
-            </div>
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50 border border-emerald-100 text-emerald-600">
-              <CreditCard className="h-5 w-5" />
-            </div>
-          </div>
-          <p className="text-xs text-stone-500 mt-3 flex items-center gap-1.5">
-            <Clock className="h-3.5 w-3.5 text-amber-600" />
-            <span>Across {myBookings.length} booking transaction{myBookings.length !== 1 ? 's' : ''}</span>
-          </p>
-        </Card>
-
-        <Card className="p-5 border-stone-200 bg-white">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs font-semibold text-stone-500 uppercase tracking-wider">
-                Account Status
-              </p>
-              <p className="text-2xl font-bold text-emerald-700 font-serif mt-1">In Good Standing</p>
-            </div>
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 border border-blue-100 text-blue-600">
-              <ShieldCheck className="h-5 w-5" />
-            </div>
-          </div>
-          <p className="text-xs text-stone-500 mt-3 flex items-center gap-1.5">
-            <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
-            <span>Zero overdue balance • Auto-pay active</span>
-          </p>
-        </Card>
-      </div>
-
-      {/* My Bookings Section */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-xl font-bold tracking-tight text-navy-900 font-serif">
-              My Active Storage Leases
-            </h2>
-            <p className="text-xs text-stone-500 mt-0.5">
-              Review current storage units, live unit telemetry, and lease options.
+            <h1 className="text-2xl sm:text-3xl font-bold font-serif text-white tracking-tight">
+              Welcome back, {userName}
+            </h1>
+            <p className="text-sm text-stone-300 max-w-xl">
+              You have <strong className="text-amber-400 font-semibold">3 active rented units</strong> across Austin, Chicago, and Seattle. Gate access, invoices, and maintenance controls are ready below.
             </p>
           </div>
-          <Link href="/storage-spaces">
-            <Button variant="outline" size="sm" className="text-xs font-semibold gap-1.5 border-stone-300 hover:border-amber-400">
-              <span>+ Rent Another Space</span>
-              <ArrowRight className="h-3.5 w-3.5" />
-            </Button>
-          </Link>
-        </div>
 
-        {myBookings.length === 0 ? (
-          <Card className="p-10 text-center border-stone-200 bg-white">
-            <PackageCheck className="mx-auto h-10 w-10 text-stone-300 mb-3" />
-            <h3 className="text-base font-bold text-navy-900">No Bookings Yet</h3>
-            <p className="text-xs text-stone-500 mt-1 mb-4">
-              You haven&apos;t rented any storage spaces. Browse available units to get started.
-            </p>
-            <Link href="/storage-spaces">
-              <Button className="bg-amber-500 hover:bg-amber-600 text-navy-950 font-bold text-xs px-5 py-2.5 rounded-xl">
-                Browse Storage Spaces
+          <div className="flex flex-wrap items-center gap-3">
+            <Link href="/my-bookings">
+              <Button className="flex items-center gap-2 bg-amber-500 hover:bg-amber-400 text-navy-950 font-bold text-xs py-2.5 px-4 rounded-xl cursor-pointer shadow-sm">
+                <Calendar className="h-4 w-4" />
+                <span>Manage My Bookings</span>
               </Button>
             </Link>
-          </Card>
-        ) : (
-          <div className="grid gap-6 md:grid-cols-2">
-            {myBookings.map((booking) => (
-              <Card
-                key={booking.id}
-                className="border-stone-200 bg-white hover:border-amber-400 hover:shadow-md transition-all duration-200 flex flex-col justify-between"
+            <Link href="/storage-spaces">
+              <Button
+                variant="outline"
+                className="flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white border-white/20 font-bold text-xs py-2.5 px-4 rounded-xl cursor-pointer"
               >
-                <div className="p-6 space-y-4">
-                  {/* Header */}
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
-                          {booking.unitType || 'Climate Controlled'}
-                        </span>
-                        <span className="text-[10px] font-semibold text-stone-500 bg-stone-100 px-2 py-0.5 rounded-full">
-                          PIN #{booking.gatePin || '4819'}
-                        </span>
-                      </div>
-                      <h3 className="text-base font-bold text-navy-900 font-serif mt-1.5">
-                        {booking.unitName}
-                      </h3>
-                    </div>
-                    <Badge variant="success" className="text-[10px] uppercase font-bold shrink-0">
-                      {booking.status}
-                    </Badge>
-                  </div>
+                <PlusCircle className="h-4 w-4 text-amber-400" />
+                <span>Browse New Spaces</span>
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </div>
 
-                  {/* Location & Dimensions */}
-                  <div className="space-y-2 text-xs text-stone-600 bg-cream-50 p-3.5 rounded-xl border border-stone-200/80">
-                    {booking.location && (
-                      <div className="flex items-start gap-2">
-                        <MapPin className="h-3.5 w-3.5 text-stone-400 shrink-0 mt-0.5" />
-                        <span className="font-medium text-navy-900">{booking.location}</span>
-                      </div>
-                    )}
-                    {booking.dimensions && (
-                      <div className="flex items-center gap-2">
-                        <Layers className="h-3.5 w-3.5 text-stone-400 shrink-0" />
-                        <span className="font-medium text-navy-900">Dimensions: {booking.dimensions}</span>
-                      </div>
-                    )}
-                    <div className="flex items-center gap-2">
-                      <Calendar className="h-3.5 w-3.5 text-stone-400 shrink-0" />
-                      <span>
-                        Lease Period: {formatDate(booking.startDate)} &rarr; {formatDate(booking.endDate)}
-                      </span>
-                    </div>
-                  </div>
+      {/* ── 2. 4 QUICK KPI OVERVIEW CARDS ── */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Card 1: Active Units */}
+        <Card className="p-4 rounded-xl border border-stone-200 bg-white shadow-xs space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold uppercase tracking-wider text-stone-500">
+              Rented Units
+            </span>
+            <div className="h-8 w-8 rounded-lg bg-amber-50 text-amber-700 flex items-center justify-center">
+              <Building2 className="h-4 w-4" />
+            </div>
+          </div>
+          <div className="text-2xl font-bold text-navy-900">3 Units</div>
+          <div className="text-[11px] text-stone-500 flex items-center gap-1">
+            <span className="text-emerald-700 font-bold">100% Occupancy</span>
+            <span>&bull; All bays secure</span>
+          </div>
+        </Card>
 
-                  {/* Live Unit Environmental Telemetry */}
-                  <div className="grid grid-cols-2 gap-2 text-xs">
-                    <div className="flex items-center gap-2 p-2.5 rounded-lg bg-stone-50 border border-stone-100">
-                      <Thermometer className="h-4 w-4 text-rose-500" />
-                      <div>
-                        <span className="text-[10px] text-stone-400 uppercase font-semibold block leading-tight">
-                          Temperature
-                        </span>
-                        <span className="font-bold text-navy-900">68°F (Optimal)</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2 p-2.5 rounded-lg bg-stone-50 border border-stone-100">
-                      <Droplets className="h-4 w-4 text-sky-500" />
-                      <div>
-                        <span className="text-[10px] text-stone-400 uppercase font-semibold block leading-tight">
-                          Humidity
-                        </span>
-                        <span className="font-bold text-navy-900">45% Controlled</span>
-                      </div>
-                    </div>
-                  </div>
+        {/* Card 2: Next Payment Due */}
+        <Card className="p-4 rounded-xl border border-stone-200 bg-white shadow-xs space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold uppercase tracking-wider text-stone-500">
+              Next Rent Due
+            </span>
+            <div className="h-8 w-8 rounded-lg bg-rose-50 text-rose-700 flex items-center justify-center">
+              <CreditCard className="h-4 w-4" />
+            </div>
+          </div>
+          <div className="text-2xl font-bold text-navy-900">$320.00</div>
+          <div className="text-[11px] text-rose-700 font-bold flex items-center gap-1">
+            <span>Due 28 Nov</span>
+            <span className="text-stone-400 font-normal">&bull; #CHI-208</span>
+          </div>
+        </Card>
 
-                  {/* Financials */}
-                  <div className="flex justify-between items-baseline pt-2 border-t border-stone-100">
-                    <span className="text-xs text-stone-500">
-                      Monthly Rate • {booking.paymentMethod || 'Auto-Debit'}
-                    </span>
-                    <span className="text-base font-bold text-emerald-700 font-serif">
-                      ₹{(booking.totalAmount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-                    </span>
-                  </div>
+        {/* Card 3: Primary Gate PIN */}
+        <Card className="p-4 rounded-xl border border-stone-200 bg-white shadow-xs space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold uppercase tracking-wider text-stone-500">
+              Primary Gate PIN
+            </span>
+            <div className="h-8 w-8 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center">
+              <ShieldCheck className="h-4 w-4" />
+            </div>
+          </div>
+          <div className="text-2xl font-mono font-bold text-navy-900 tracking-wider">
+            #8429
+          </div>
+          <div className="text-[11px] text-stone-500">
+            Austin SafeStore &bull; Keypad PIN
+          </div>
+        </Card>
 
-                  {booking.transactionId && (
-                    <p className="text-[10px] text-stone-400 font-mono">
-                      Invoice Ref: {booking.transactionId}
-                    </p>
-                  )}
-                </div>
+        {/* Card 4: Climate Telemetry */}
+        <Card className="p-4 rounded-xl border border-stone-200 bg-white shadow-xs space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold uppercase tracking-wider text-stone-500">
+              Climate Status
+            </span>
+            <div className="h-8 w-8 rounded-lg bg-sky-50 text-sky-700 flex items-center justify-center">
+              <Thermometer className="h-4 w-4" />
+            </div>
+          </div>
+          <div className="text-2xl font-bold text-navy-900">21.4°C</div>
+          <div className="text-[11px] text-emerald-700 font-bold flex items-center gap-1">
+            <span>44% Humidity</span>
+            <span className="text-stone-400 font-normal">&bull; Protected</span>
+          </div>
+        </Card>
+      </div>
 
-                {/* Card Actions */}
-                <div className="px-6 pb-5 pt-1 border-t border-stone-100 flex items-center justify-between gap-3">
-                  <div className="flex gap-2 flex-1">
-                    <Link href="/my-payments" className="flex-1">
-                      <Button variant="outline" size="sm" className="w-full text-xs font-semibold border-stone-300 hover:border-amber-400">
-                        View Invoices
-                      </Button>
-                    </Link>
-                    <Link href="/request" className="flex-1">
-                      <Button variant="outline" size="sm" className="w-full text-xs font-semibold border-stone-300 hover:border-amber-400">
-                        Get Support
-                      </Button>
-                    </Link>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setVacateModalBooking(booking)}
-                    className="text-xs text-stone-500 hover:text-rose-600 hover:bg-rose-50"
-                  >
-                    Schedule Move-Out
-                  </Button>
-                </div>
-              </Card>
-            ))}
+      {/* ── 2.5 AI STORAGE & LEASE ADVISOR WIDGET ── */}
+      <Card className="p-5 rounded-2xl border border-amber-300/80 bg-gradient-to-br from-amber-50/60 via-white to-amber-50/40 shadow-sm space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-amber-200/60 pb-3">
+          <div className="flex items-center gap-2.5">
+            <div className="h-9 w-9 rounded-xl bg-navy-900 text-amber-400 flex items-center justify-center shadow-xs">
+              <Sparkles className="h-5 w-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm font-bold text-navy-900 font-serif">
+                  RentAll-Q AI Storage Advisor
+                </h3>
+                <span className="text-[10px] font-bold text-amber-900 bg-amber-100 border border-amber-300 px-2 py-0.2 rounded-full">
+                  96% Confidence Score
+                </span>
+              </div>
+              <p className="text-xs text-stone-500">
+                Proactive intelligence analyzing your 3 rented bays, lease terms, and climate telemetry.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-1.5 overflow-x-auto">
+            <button
+              type="button"
+              onClick={() => setActiveAiTab('savings')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                activeAiTab === 'savings'
+                  ? 'bg-navy-900 text-amber-400 shadow-xs'
+                  : 'bg-white border border-stone-200 text-stone-600 hover:bg-stone-50'
+              }`}
+            >
+              💰 Pre-Pay &amp; Save
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveAiTab('space')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                activeAiTab === 'space'
+                  ? 'bg-navy-900 text-amber-400 shadow-xs'
+                  : 'bg-white border border-stone-200 text-stone-600 hover:bg-stone-50'
+              }`}
+            >
+              📦 Space Capacity
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveAiTab('climate')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                activeAiTab === 'climate'
+                  ? 'bg-navy-900 text-amber-400 shadow-xs'
+                  : 'bg-white border border-stone-200 text-stone-600 hover:bg-stone-50'
+              }`}
+            >
+              🛡️ Climate Safety
+            </button>
+          </div>
+        </div>
+
+        {/* AI Insight Content */}
+        {activeAiTab === 'savings' && (
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl bg-white border border-amber-200">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold text-rose-700 bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200">
+                  Lease Alert &bull; Unit #CHI-208
+                </span>
+                <span className="text-xs text-stone-500">Expires in 18 days (28 Nov 2026)</span>
+              </div>
+              <p className="text-xs text-stone-700 font-medium pt-0.5">
+                Switching Unit #CHI-208 from month-to-month to a <strong>3-month pre-paid renewal</strong> locks in a 10% loyalty discount ($288/mo instead of $320/mo) &mdash; <strong className="text-emerald-700 font-bold">saves $96.00 total</strong>.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              disabled={claimedDiscount}
+              onClick={() => setClaimedDiscount(true)}
+              className="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-navy-950 font-bold text-xs shrink-0 cursor-pointer shadow-xs disabled:opacity-60 transition"
+            >
+              {claimedDiscount ? '✓ 10% Discount Applied to Next Invoice!' : 'Claim 10% Pre-Pay Rate'}
+            </button>
           </div>
         )}
-      </div>
 
-      {/* Facility Contact & Emergency Card */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pt-2">
-        <Card className="p-5 border-stone-200 bg-white">
-          <div className="flex items-start gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-50 text-amber-700 border border-amber-200 shrink-0">
-              <PhoneCall className="h-5 w-5" />
-            </div>
+        {activeAiTab === 'space' && (
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl bg-white border border-amber-200">
             <div className="space-y-1">
-              <h3 className="text-sm font-bold text-navy-900 font-serif">
-                On-Duty Facility Management
-              </h3>
-              <p className="text-xs text-stone-500 leading-relaxed">
-                Manager on duty: <strong>Marcus Vance</strong> (Austin SafeStore Hub). Available for freight assistance, lock-outs, and handcart rentals.
-              </p>
-              <div className="pt-2 flex items-center gap-3 text-xs">
-                <a
-                  href="tel:+15125550199"
-                  className="font-bold text-amber-800 hover:underline flex items-center gap-1"
-                >
-                  <PhoneCall className="h-3 w-3" />
-                  +1 (512) 555-0199
-                </a>
-                <span className="text-stone-300">•</span>
-                <span className="text-stone-500">Gate Hours: 6:00 AM – 10:00 PM</span>
-              </div>
-            </div>
-          </div>
-        </Card>
-
-        <Card className="p-5 border-stone-200 bg-white">
-          <div className="flex items-start gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0">
-              <ShieldCheck className="h-5 w-5" />
-            </div>
-            <div className="space-y-1">
-              <h3 className="text-sm font-bold text-navy-900 font-serif">
-                24/7 Security &amp; Tenant Protection
-              </h3>
-              <p className="text-xs text-stone-500 leading-relaxed">
-                Your unit is guarded with individual door contact sensors, CCTV perimeter coverage, and ₹5,00,000 comprehensive policy protection included.
-              </p>
-              <div className="pt-2 flex items-center gap-3 text-xs">
-                <Link href="/request" className="font-bold text-navy-900 hover:underline flex items-center gap-1">
-                  <span>Report Security Issue</span>
-                  <ArrowRight className="h-3 w-3 text-amber-600" />
-                </Link>
-              </div>
-            </div>
-          </div>
-        </Card>
-      </div>
-
-      {/* Guest Pass / Mover Temporary PIN Modal */}
-      {guestPassBooking && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-navy-950/60 backdrop-blur-xs p-4">
-          <Card className="max-w-md w-full p-6 bg-white border-stone-300 shadow-2xl space-y-4">
-            <div className="flex items-start justify-between">
               <div className="flex items-center gap-2">
-                <UserCheck className="h-5 w-5 text-amber-600" />
-                <h3 className="text-base font-bold text-navy-900 font-serif">
-                  Generate Guest / Mover Pass
-                </h3>
+                <span className="text-xs font-bold text-sky-800 bg-sky-50 px-2 py-0.5 rounded-md border border-sky-200">
+                  Volumetric Estimate &bull; Unit #ATX-104
+                </span>
+                <span className="text-xs text-stone-500">10x10 Climate-Controlled (100 sq ft)</span>
               </div>
-              <button
-                onClick={() => {
-                  setGuestPassBooking(null);
-                  setGuestPinGenerated(null);
-                  setGuestName('');
-                  setGuestPhone('');
-                }}
-                className="text-stone-400 hover:text-stone-600 cursor-pointer"
-              >
-                <X className="h-5 w-5" />
-              </button>
+              <p className="text-xs text-stone-700 font-medium pt-0.5">
+                Current estimated volumetric utilization is <strong>78%</strong>. You have room for approximately <strong>4-6 more standard moving totes</strong> by utilizing vertical wall shelving before needing a larger unit.
+              </p>
             </div>
 
-            <p className="text-xs text-stone-500">
-              Generate a temporary 24-hour keypad code for family, friends, or moving companies to access {guestPassBooking.unitName}.
-            </p>
+            <Link href="/storage-spaces">
+              <button
+                type="button"
+                className="px-4 py-2.5 rounded-xl bg-navy-900 hover:bg-navy-800 text-white font-bold text-xs shrink-0 cursor-pointer shadow-xs transition"
+              >
+                Explore Unit Upgrades &rarr;
+              </button>
+            </Link>
+          </div>
+        )}
 
-            {guestPinGenerated ? (
-              <div className="space-y-4 py-3">
-                <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 text-center space-y-1">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-amber-800">
-                    Temporary 24h Gate PIN
-                  </span>
-                  <p className="text-3xl font-mono font-bold tracking-widest text-navy-900">
-                    #{guestPinGenerated}
+        {activeAiTab === 'climate' && (
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl bg-white border border-amber-200">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+                  Telemetry Monitor &bull; Austin &amp; Chicago
+                </span>
+                <span className="text-xs text-emerald-700 font-bold">100% Online &bull; Optimal</span>
+              </div>
+              <p className="text-xs text-stone-700 font-medium pt-0.5">
+                Continuous IoT sensor telemetry for #ATX-104 (21.4°C, 44% RH) and #CHI-208 (19.8°C, 48% RH) shows zero humidity spikes over the last 14 days. Your electronics and fabrics are completely protected from mildew.
+              </p>
+            </div>
+
+            <Link href="/my-bookings">
+              <button
+                type="button"
+                className="px-4 py-2.5 rounded-xl bg-white border border-stone-300 hover:bg-stone-50 text-navy-900 font-bold text-xs shrink-0 cursor-pointer shadow-2xs transition"
+              >
+                Inspect Telemetry Sensors &rarr;
+              </button>
+            </Link>
+          </div>
+        )}
+      </Card>
+
+      {/* ── 3. DUAL COLUMN: QUICK GATE ACCESS & ACTIVE PORTFOLIO ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left 2 Cols: Rented Units Snapshot */}
+        <div className="lg:col-span-2 space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-lg font-bold text-navy-900 font-serif">
+                Your Rented Storage Portfolio
+              </h2>
+              <p className="text-xs text-stone-500">
+                Click any unit to open full access, invoice slips, or unit maintenance.
+              </p>
+            </div>
+            <Link
+              href="/my-bookings"
+              className="text-xs font-bold text-amber-700 hover:text-amber-800 flex items-center gap-1"
+            >
+              <span>View All Details</span>
+              <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
+
+          <div className="space-y-3">
+            {/* Unit 1 */}
+            <div className="p-4 rounded-xl border border-stone-200 bg-white hover:border-amber-400 hover:shadow-xs transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex items-start gap-3">
+                <div className="h-10 w-10 rounded-xl bg-navy-900 text-amber-400 flex items-center justify-center font-bold text-sm shrink-0">
+                  <Building2 className="h-5 w-5" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-bold text-navy-900 text-sm">
+                      Unit #ATX-104 &bull; 10x10 Climate-Controlled
+                    </h3>
+                    <Badge className="text-[10px] bg-emerald-50 text-emerald-800 border-emerald-200 font-bold">
+                      Active
+                    </Badge>
+                  </div>
+                  <p className="text-xs text-stone-500 mt-0.5">
+                    Austin SafeStore & Central Depot &bull; Ground Level Bay B-14
                   </p>
-                  <span className="text-[11px] text-stone-500 block pt-1">
-                    Valid for: <strong>{guestName}</strong> ({guestPhone || 'No phone'})
-                  </span>
+                  <div className="text-[11px] text-stone-400 mt-1">
+                    PIN: <strong className="text-navy-900">#8429</strong> &bull; Next Rent: $145 due 15 Dec 2026
+                  </div>
                 </div>
-
-                <div className="p-3 bg-stone-50 rounded-lg text-xs text-stone-600 space-y-1 border border-stone-200">
-                  <p className="font-semibold text-navy-900">Instructions to share with your mover:</p>
-                  <p>&bull; Keypad location: South Gate Entrance &amp; Freight Elevator B</p>
-                  <p>&bull; Punch <strong>#{guestPinGenerated}</strong> followed by &apos;#&apos; key</p>
-                  <p>&bull; Code automatically expires after 24 hours</p>
-                </div>
-
-                <Button
-                  onClick={() => {
-                    handleCopyPin(guestPinGenerated);
-                  }}
-                  className="w-full bg-navy-900 hover:bg-navy-800 text-white font-bold text-xs py-2.5 rounded-xl"
-                >
-                  {copiedPin ? 'Copied to Clipboard!' : 'Copy Guest Pass Details'}
-                </Button>
               </div>
-            ) : (
-              <form onSubmit={handleGenerateGuestPass} className="space-y-3">
-                <div>
-                  <label className="block text-xs font-semibold text-navy-900 mb-1">
-                    Guest or Mover Name
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. John Doe / Apex Movers"
-                    value={guestName}
-                    onChange={(e) => setGuestName(e.target.value)}
-                    className="w-full rounded-xl border border-stone-300 p-2.5 text-xs text-navy-900 focus:border-amber-500 focus:outline-none"
-                  />
-                </div>
 
-                <div>
-                  <label className="block text-xs font-semibold text-navy-900 mb-1">
-                    Mobile Number (Optional)
-                  </label>
-                  <input
-                    type="tel"
-                    placeholder="e.g. +1 (555) 012-3456"
-                    value={guestPhone}
-                    onChange={(e) => setGuestPhone(e.target.value)}
-                    className="w-full rounded-xl border border-stone-300 p-2.5 text-xs text-navy-900 focus:border-amber-500 focus:outline-none"
-                  />
-                </div>
-
+              <Link href="/my-bookings">
                 <Button
-                  type="submit"
-                  className="w-full bg-amber-500 hover:bg-amber-600 text-navy-950 font-bold text-xs py-2.5 rounded-xl mt-2"
+                  size="sm"
+                  variant="outline"
+                  className="text-xs font-bold text-navy-900 flex items-center gap-1.5 cursor-pointer w-full sm:w-auto justify-center"
                 >
-                  Generate 24h Access Pass
+                  <span>Manage</span>
+                  <ChevronRight className="h-3.5 w-3.5" />
                 </Button>
-              </form>
-            )}
-          </Card>
-        </div>
-      )}
+              </Link>
+            </div>
 
-      {/* Vacate / Move-Out Notice Modal */}
-      {vacateModalBooking && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-navy-950/60 backdrop-blur-xs p-4">
-          <Card className="max-w-md w-full p-6 bg-white border-stone-300 shadow-2xl space-y-4">
-            <div className="flex items-start justify-between">
-              <div className="flex items-center gap-2">
-                <AlertTriangle className="h-5 w-5 text-amber-600" />
-                <h3 className="text-base font-bold text-navy-900 font-serif">
-                  Schedule Move-Out Notice
-                </h3>
+            {/* Unit 2 */}
+            <div className="p-4 rounded-xl border border-stone-200 bg-white hover:border-amber-400 hover:shadow-xs transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex items-start gap-3">
+                <div className="h-10 w-10 rounded-xl bg-navy-900 text-amber-400 flex items-center justify-center font-bold text-sm shrink-0">
+                  <Building2 className="h-5 w-5" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-bold text-navy-900 text-sm">
+                      Unit #CHI-208 &bull; 15x20 Commercial Warehouse Bay
+                    </h3>
+                    <Badge className="text-[10px] bg-rose-50 text-rose-800 border-rose-200 font-bold animate-pulse">
+                      Rent Due Soon
+                    </Badge>
+                  </div>
+                  <p className="text-xs text-stone-500 mt-0.5">
+                    Chicago MetroHub Micro-Depot &bull; Loading Dock Bay F-08
+                  </p>
+                  <div className="text-[11px] text-stone-400 mt-1">
+                    PIN: <strong className="text-navy-900">#6190</strong> &bull; Next Rent: $320 due 28 Nov 2026
+                  </div>
+                </div>
+              </div>
+
+              <Link href="/my-bookings">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="text-xs font-bold text-navy-900 flex items-center gap-1.5 cursor-pointer w-full sm:w-auto justify-center"
+                >
+                  <span>Manage</span>
+                  <ChevronRight className="h-3.5 w-3.5" />
+                </Button>
+              </Link>
+            </div>
+
+            {/* Unit 3 */}
+            <div className="p-4 rounded-xl border border-stone-200 bg-white hover:border-amber-400 hover:shadow-xs transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex items-start gap-3">
+                <div className="h-10 w-10 rounded-xl bg-navy-900 text-amber-400 flex items-center justify-center font-bold text-sm shrink-0">
+                  <Building2 className="h-5 w-5" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-bold text-navy-900 text-sm">
+                      Unit #SEA-012 &bull; 10x20 Vehicle & Fleet Bay
+                    </h3>
+                    <Badge className="text-[10px] bg-sky-50 text-sky-800 border-sky-200 font-bold">
+                      Auto-Renew
+                    </Badge>
+                  </div>
+                  <p className="text-xs text-stone-500 mt-0.5">
+                    Seattle Pacific Port Terminal &bull; Covered Bay V-12
+                  </p>
+                  <div className="text-[11px] text-stone-400 mt-1">
+                    PIN: <strong className="text-navy-900">#3374</strong> &bull; Next Rent: $210 due 10 Dec 2026
+                  </div>
+                </div>
+              </div>
+
+              <Link href="/my-bookings">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="text-xs font-bold text-navy-900 flex items-center gap-1.5 cursor-pointer w-full sm:w-auto justify-center"
+                >
+                  <span>Manage</span>
+                  <ChevronRight className="h-3.5 w-3.5" />
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </div>
+
+        {/* Right 1 Col: Keyless Gate Access & Quick Actions */}
+        <div className="space-y-4">
+          <Card className="p-5 rounded-2xl border border-stone-200 bg-white shadow-xs space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-bold text-navy-900 text-sm">Fast Gate Unlock</h3>
+                <p className="text-[11px] text-stone-500">Primary Austin Facility</p>
+              </div>
+              <KeyRound className="h-5 w-5 text-amber-600" />
+            </div>
+
+            <div className="p-3 bg-stone-50 rounded-xl border border-stone-200 flex items-center justify-between">
+              <div className="font-mono text-xl font-bold tracking-widest text-navy-900">
+                #8429
               </div>
               <button
-                onClick={() => {
-                  setVacateModalBooking(null);
-                  setVacateSubmitted(false);
-                }}
-                className="text-stone-400 hover:text-stone-600 cursor-pointer"
+                type="button"
+                onClick={() => handleCopyPin('8429')}
+                className="text-xs font-semibold text-stone-600 hover:text-navy-900 cursor-pointer flex items-center gap-1"
               >
-                <X className="h-5 w-5" />
+                {copiedPin ? (
+                  <span className="text-emerald-700 font-bold flex items-center gap-1">
+                    <Check className="h-3.5 w-3.5" /> Copied
+                  </span>
+                ) : (
+                  <>
+                    <Copy className="h-3.5 w-3.5" /> Copy
+                  </>
+                )}
               </button>
             </div>
 
-            {vacateSubmitted ? (
-              <div className="py-4 text-center space-y-3">
-                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
-                  <CheckCircle2 className="h-6 w-6" />
-                </div>
-                <h4 className="text-base font-bold text-navy-900">Move-Out Notice Recorded</h4>
-                <p className="text-xs text-stone-600 max-w-sm mx-auto">
-                  Your facility manager has received your notice for <strong>{vacateModalBooking.unitName}</strong>. You will receive an inspection checklist prior to move-out.
-                </p>
-                <Button
-                  onClick={() => {
-                    setVacateModalBooking(null);
-                    setVacateSubmitted(false);
-                  }}
-                  className="bg-navy-900 text-white font-bold text-xs px-5 py-2.5 rounded-xl"
-                >
-                  Close
-                </Button>
-              </div>
-            ) : (
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  setVacateSubmitted(true);
-                }}
-                className="space-y-3"
+            <Button
+              type="button"
+              disabled={isUnlocking}
+              onClick={handleRemoteUnlock}
+              className="w-full flex items-center justify-center gap-2 bg-navy-900 hover:bg-navy-800 text-white font-bold text-xs py-2.5 rounded-xl cursor-pointer shadow-sm"
+            >
+              <Unlock className="h-4 w-4 text-amber-400" />
+              <span>{isUnlocking ? `Gate Unlocked (${unlockSeconds}s)` : '1-Click Remote Gate Unlock'}</span>
+            </Button>
+          </Card>
+
+          {/* Quick Shortcuts */}
+          <Card className="p-4 rounded-2xl border border-stone-200 bg-stone-50/60 space-y-2">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-stone-500">
+              Quick Shortcuts
+            </span>
+            <div className="space-y-1.5">
+              <Link
+                href="/my-bookings"
+                className="flex items-center justify-between p-2.5 rounded-xl bg-white border border-stone-200 text-xs font-semibold text-navy-900 hover:border-amber-400 hover:bg-amber-50/30 transition"
               >
-                <p className="text-xs text-stone-500">
-                  Submitting this notice gives your facility team advance notice to inspect the unit and release any security deposits upon vacating.
-                </p>
-
-                <div>
-                  <label className="block text-xs font-semibold text-navy-900 mb-1">
-                    Planned Move-Out Date
-                  </label>
-                  <input
-                    type="date"
-                    required
-                    value={vacateDate}
-                    onChange={(e) => setVacateDate(e.target.value)}
-                    min={new Date().toISOString().split('T')[0]}
-                    className="w-full rounded-xl border border-stone-300 p-2.5 text-xs text-navy-900 focus:border-amber-500 focus:outline-none"
-                  />
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-amber-600" />
+                  <span>My Bookings &amp; Units</span>
                 </div>
+                <ChevronRight className="h-3.5 w-3.5 text-stone-400" />
+              </Link>
 
-                <div>
-                  <label className="block text-xs font-semibold text-navy-900 mb-1">
-                    Primary Reason
-                  </label>
-                  <select
-                    value={vacateReason}
-                    onChange={(e) => setVacateReason(e.target.value)}
-                    className="w-full rounded-xl border border-stone-300 p-2.5 text-xs text-navy-900 focus:border-amber-500 focus:outline-none"
-                  >
-                    <option>Relocation / Moved houses</option>
-                    <option>No longer need additional storage</option>
-                    <option>Downsizing to smaller unit</option>
-                    <option>Found alternative facility</option>
-                    <option>Other personal reasons</option>
-                  </select>
+              <Link
+                href="/storage-spaces"
+                className="flex items-center justify-between p-2.5 rounded-xl bg-white border border-stone-200 text-xs font-semibold text-navy-900 hover:border-amber-400 hover:bg-amber-50/30 transition"
+              >
+                <div className="flex items-center gap-2">
+                  <Building2 className="h-4 w-4 text-amber-600" />
+                  <span>Browse Storage Spaces</span>
                 </div>
+                <ChevronRight className="h-3.5 w-3.5 text-stone-400" />
+              </Link>
 
-                <div className="pt-2 flex gap-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setVacateModalBooking(null)}
-                    className="flex-1 text-xs font-semibold"
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    type="submit"
-                    className="flex-1 bg-amber-500 hover:bg-amber-600 text-navy-950 font-bold text-xs"
-                  >
-                    Confirm Notice
-                  </Button>
+              <Link
+                href="/my-payments"
+                className="flex items-center justify-between p-2.5 rounded-xl bg-white border border-stone-200 text-xs font-semibold text-navy-900 hover:border-amber-400 hover:bg-amber-50/30 transition"
+              >
+                <div className="flex items-center gap-2">
+                  <CreditCard className="h-4 w-4 text-amber-600" />
+                  <span>Payments &amp; Receipts</span>
                 </div>
-              </form>
-            )}
+                <ChevronRight className="h-3.5 w-3.5 text-stone-400" />
+              </Link>
+
+              <Link
+                href="/request"
+                className="flex items-center justify-between p-2.5 rounded-xl bg-white border border-stone-200 text-xs font-semibold text-navy-900 hover:border-amber-400 hover:bg-amber-50/30 transition"
+              >
+                <div className="flex items-center gap-2">
+                  <Send className="h-4 w-4 text-amber-600" />
+                  <span>Help &amp; Maintenance</span>
+                </div>
+                <ChevronRight className="h-3.5 w-3.5 text-stone-400" />
+              </Link>
+            </div>
           </Card>
         </div>
-      )}
+      </div>
     </div>
   );
 }
