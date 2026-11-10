@@ -5,6 +5,12 @@ export default defineConfig({
   test: {
     environment: 'node',
     globals: true,
+    css: false,
+  },
+  css: {
+    postcss: {
+      plugins: [],
+    },
   },
   resolve: {
     alias: {

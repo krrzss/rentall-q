@@ -1,12 +1,10 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { createClient } from '@/server/lib/supabaseClient';
 import { Shield, Mail, Lock, ArrowRight } from 'lucide-react';
 
 export default function AdminLoginPage() {
-  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -67,7 +65,7 @@ export default function AdminLoginPage() {
         window.location.href = '/admin/dashboard';
       }
     } catch (err: any) {
-      setError(err.message || 'An unexpected error occurred.');
+      setError(err?.message || 'An unexpected error occurred.');
       setLoading(false);
     }
   };
@@ -113,7 +111,7 @@ export default function AdminLoginPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="admin@rentallq.com"
-                  className="w-full rounded-xl border border-stone-300 bg-cream-50/60 pl-10 pr-4 py-2.5 text-sm text-navy-900 placeholder-stone-400 focus:border-amber-500 focus:outline-hidden focus:ring-2 focus:ring-amber-500/20 transition"
+                  className="w-full rounded-xl border border-stone-300 bg-cream-50/60 pl-10 pr-4 py-2.5 text-sm text-navy-900 placeholder-stone-400 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20 transition"
                 />
               </div>
             </div>
@@ -132,7 +130,7 @@ export default function AdminLoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full rounded-xl border border-stone-300 bg-cream-50/60 pl-10 pr-4 py-2.5 text-sm text-navy-900 placeholder-stone-400 focus:border-amber-500 focus:outline-hidden focus:ring-2 focus:ring-amber-500/20 transition"
+                  className="w-full rounded-xl border border-stone-300 bg-cream-50/60 pl-10 pr-4 py-2.5 text-sm text-navy-900 placeholder-stone-400 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20 transition"
                 />
               </div>
             </div>
@@ -143,7 +141,7 @@ export default function AdminLoginPage() {
               disabled={loading}
               className="w-full flex items-center justify-center gap-2 rounded-xl bg-navy-900 py-3 text-sm font-bold text-white shadow-md hover:bg-navy-800 transition active:scale-[0.99] disabled:opacity-50 cursor-pointer"
             >
-              <span>{loading ? 'Authenticating…' : 'Sign In to Admin Console'}</span>
+              <span>{loading ? 'Authenticating...' : 'Sign In to Admin Console'}</span>
               <ArrowRight className="h-4 w-4 text-amber-400" />
             </button>
           </form>
