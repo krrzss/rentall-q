@@ -86,6 +86,29 @@ export async function GET(request: NextRequest) {
             // Ignored if handled by database trigger or RLS
           }
         }
+
+        // Ensure customer record exists in customers table with real email
+        if (user.email) {
+          try {
+            const userName =
+              user.user_metadata?.full_name ||
+              user.user_metadata?.name ||
+              user.email.split('@')[0] ||
+              'Client';
+            await supabase.from('customers').upsert(
+              {
+                name: userName,
+                email: user.email.toLowerCase(),
+                phone: user.user_metadata?.phone || '+91 98200 12345',
+                address: 'Mumbai, Maharashtra',
+                status: 'ACTIVE',
+              },
+              { onConflict: 'email' }
+            );
+          } catch {
+            // Non-fatal
+          }
+        }
       }
 
       return response;

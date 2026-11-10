@@ -81,7 +81,7 @@ function ClientLoginContent() {
       if (authData.user) {
         const { data: profile } = await supabase
           .from('profiles')
-          .select('role')
+          .select('name, role')
           .eq('id', authData.user.id)
           .maybeSingle();
 
@@ -94,6 +94,27 @@ function ClientLoginContent() {
           await supabase.auth.signOut();
           setLoading(false);
           return;
+        }
+
+        // Ensure client record exists in customers table with real email
+        try {
+          const clientName =
+            profile?.name ||
+            authData.user.user_metadata?.full_name ||
+            authData.user.user_metadata?.name ||
+            cleanEmail.split('@')[0];
+          await supabase.from('customers').upsert(
+            {
+              name: clientName,
+              email: cleanEmail,
+              phone: authData.user.user_metadata?.phone || '+91 98200 12345',
+              address: authData.user.user_metadata?.address || 'Mumbai, Maharashtra',
+              status: 'ACTIVE',
+            },
+            { onConflict: 'email' }
+          );
+        } catch {
+          // Non-fatal if customers table already has record
         }
 
         // Clear any business warehouse session cookies to ensure clean client state

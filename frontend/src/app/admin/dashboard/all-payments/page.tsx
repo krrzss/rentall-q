@@ -22,16 +22,16 @@ interface Transaction {
 }
 
 const TRANSACTIONS: Transaction[] = [
-  { id: 't-01', invoiceCode: 'INV-2026-0841', paidBy: 'Amit Sharma', paidTo: 'Hindustan Cold Storage', grossAmountInr: 8500, platformFeeInr: 723, netToOwnerInr: 7777, method: 'UPI', date: '01 Nov 2026', status: 'SETTLED' },
-  { id: 't-02', invoiceCode: 'INV-2026-0729', paidBy: 'Priya Verma', paidTo: 'Urban Attic Self-Storage', grossAmountInr: 6800, platformFeeInr: 578, netToOwnerInr: 6222, method: 'NetBanking', date: '01 Nov 2026', status: 'SETTLED' },
-  { id: 't-03', invoiceCode: 'INV-2026-0888', paidBy: 'Meera Joshi', paidTo: 'SecureHub Chennai', grossAmountInr: 5500, platformFeeInr: 468, netToOwnerInr: 5033, method: 'Card', date: '01 Nov 2026', status: 'SETTLED' },
-  { id: 't-04', invoiceCode: 'INV-2026-1001', paidBy: 'Anjali Singh', paidTo: 'Urban Attic Self-Storage', grossAmountInr: 32000, platformFeeInr: 2720, netToOwnerInr: 29280, method: 'NetBanking', date: '15 Nov 2026', status: 'PENDING_PAYOUT' },
-  { id: 't-05', invoiceCode: 'INV-2026-0502', paidBy: 'Sunita Patel', paidTo: 'SafeKeep Pune Storage', grossAmountInr: 2800, platformFeeInr: 238, netToOwnerInr: 2562, method: 'UPI', date: '01 Oct 2026', status: 'FAILED' },
-  { id: 't-06', invoiceCode: 'INV-2026-0441', paidBy: 'Kabir Khan', paidTo: 'Hindustan Cold Storage', grossAmountInr: 25000, platformFeeInr: 2125, netToOwnerInr: 22875, method: 'NetBanking', date: '01 Nov 2026', status: 'PENDING_PAYOUT' },
-  { id: 't-07', invoiceCode: 'INV-2026-0615', paidBy: 'Ravi Kumar', paidTo: 'Capital Vault Warehousing', grossAmountInr: 18500, platformFeeInr: 1573, netToOwnerInr: 16928, method: 'Card', date: '01 Aug 2026', status: 'SETTLED' },
-  { id: 't-08', invoiceCode: 'INV-2026-0990', paidBy: 'Deepak Nair', paidTo: 'Metro Box Hyderabad', grossAmountInr: 22000, platformFeeInr: 1870, netToOwnerInr: 20130, method: 'UPI', date: '01 Dec 2026', status: 'PENDING_PAYOUT' },
-  { id: 't-09', invoiceCode: 'INV-2026-0410', paidBy: 'Rohit Desai', paidTo: 'SafeKeep Pune Storage', grossAmountInr: 2800, platformFeeInr: 238, netToOwnerInr: 2562, method: 'UPI', date: '01 Sep 2026', status: 'REFUNDED' },
-  { id: 't-10', invoiceCode: 'INV-2026-0311', paidBy: 'Nisha Reddy', paidTo: 'SecureHub Chennai', grossAmountInr: 9000, platformFeeInr: 765, netToOwnerInr: 8235, method: 'Card', date: '01 Oct 2026', status: 'SETTLED' },
+  { id: 't-01', invoiceCode: 'INV-2026-00841', paidBy: 'Amit Sharma', paidTo: 'Hindustan Cold Storage & Logistics', grossAmountInr: 8500, platformFeeInr: 723, netToOwnerInr: 7777, method: 'UPI', date: '01 Nov 2026', status: 'SETTLED' },
+  { id: 't-02', invoiceCode: 'INV-2026-00729', paidBy: 'Priya Verma', paidTo: 'Urban Attic Self-Storage', grossAmountInr: 6800, platformFeeInr: 578, netToOwnerInr: 6222, method: 'NetBanking', date: '01 Nov 2026', status: 'SETTLED' },
+  { id: 't-03', invoiceCode: 'INV-2026-00888', paidBy: 'Meera Joshi', paidTo: 'SecureHub Chennai', grossAmountInr: 5500, platformFeeInr: 468, netToOwnerInr: 5033, method: 'Card', date: '01 Nov 2026', status: 'SETTLED' },
+  { id: 't-04', invoiceCode: 'INV-2026-01001', paidBy: 'Anjali Singh', paidTo: 'Urban Attic Self-Storage', grossAmountInr: 32000, platformFeeInr: 2720, netToOwnerInr: 29280, method: 'NetBanking', date: '15 Nov 2026', status: 'PENDING_PAYOUT' },
+  { id: 't-05', invoiceCode: 'INV-2026-00502', paidBy: 'Sunita Patel', paidTo: 'SafeKeep Pune Storage', grossAmountInr: 2800, platformFeeInr: 238, netToOwnerInr: 2562, method: 'UPI', date: '01 Oct 2026', status: 'FAILED' },
+  { id: 't-06', invoiceCode: 'INV-2026-00441', paidBy: 'Kabir Khan', paidTo: 'Hindustan Cold Storage & Logistics', grossAmountInr: 25000, platformFeeInr: 2125, netToOwnerInr: 22875, method: 'NetBanking', date: '01 Nov 2026', status: 'PENDING_PAYOUT' },
+  { id: 't-07', invoiceCode: 'INV-2026-00615', paidBy: 'Ravi Kumar', paidTo: 'Capital Vault Warehousing', grossAmountInr: 18500, platformFeeInr: 1573, netToOwnerInr: 16928, method: 'Card', date: '01 Aug 2026', status: 'SETTLED' },
+  { id: 't-08', invoiceCode: 'INV-2026-00990', paidBy: 'Deepak Nair', paidTo: 'Metro Box Hyderabad', grossAmountInr: 22000, platformFeeInr: 1870, netToOwnerInr: 20130, method: 'UPI', date: '01 Dec 2026', status: 'PENDING_PAYOUT' },
+  { id: 't-09', invoiceCode: 'INV-2026-00410', paidBy: 'Rohit Desai', paidTo: 'SafeKeep Pune Storage', grossAmountInr: 2800, platformFeeInr: 238, netToOwnerInr: 2562, method: 'UPI', date: '01 Sep 2026', status: 'REFUNDED' },
+  { id: 't-10', invoiceCode: 'INV-2026-00311', paidBy: 'Nisha Reddy', paidTo: 'SecureHub Chennai', grossAmountInr: 9000, platformFeeInr: 765, netToOwnerInr: 8235, method: 'Card', date: '01 Oct 2026', status: 'SETTLED' },
 ];
 
 const statusConfig = {
