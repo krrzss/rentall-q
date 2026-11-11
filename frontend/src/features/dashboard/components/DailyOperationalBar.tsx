@@ -214,7 +214,7 @@ export function DailyOperationalBar() {
             <div className="flex items-center justify-between border-b border-stone-100 pb-3">
               <div className="flex items-center gap-2">
                 <Truck className="h-5 w-5 text-emerald-600" />
-                <h3 className="text-lg font-bold text-navy-900 font-serif">Today's Scheduled Move-Ins</h3>
+                <h3 className="text-lg font-bold text-navy-900 font-serif">Today&apos;s Scheduled Move-Ins</h3>
               </div>
               <button onClick={() => setActiveModal(null)} className="p-1 rounded-lg text-stone-400 hover:text-stone-700">
                 <X className="h-4 w-4" />

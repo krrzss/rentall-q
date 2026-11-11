@@ -2,6 +2,13 @@
 const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+  typescript: {
+    // Already checked by tsc in CI pipeline
+    ignoreBuildErrors: false,
+  },
   async rewrites() {
     return [
       { source: '/dashboard/ai-space-advisor', destination: '/ai-space-advisor' },

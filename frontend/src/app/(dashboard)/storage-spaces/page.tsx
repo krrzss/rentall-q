@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -231,7 +231,7 @@ export default function StorageSpacesMarketplace() {
     loadData();
   }, []);
 
-  const isUnitAiMatch = (u: StorageUnit) => {
+  const isUnitAiMatch = useCallback((u: StorageUnit) => {
     if (!activeAiRec) return false;
     const recType = activeAiRec.recommendedType.toLowerCase();
     const recSize = activeAiRec.recommendedSize.toLowerCase();
@@ -250,7 +250,7 @@ export default function StorageSpacesMarketplace() {
       (recType.includes('locker') && (uDesc.includes('locker') || uType.includes('locker') || uName.includes('locker') || uDim.includes('5x5'))) ||
       (recType.includes('warehouse') && (uDesc.includes('warehouse') || uType.includes('warehouse') || uName.includes('warehouse') || uDim.includes('20') || uDim.includes('30')))
     );
-  };
+  }, [activeAiRec]);
 
   // Find real matching units across all facilities for the AI recommendation
   const aiMatchingUnits = useMemo(() => {
@@ -263,7 +263,7 @@ export default function StorageSpacesMarketplace() {
       }))
     );
     return all.filter((u) => isUnitAiMatch(u)).slice(0, 4);
-  }, [activeAiRec, companies]);
+  }, [activeAiRec, companies, isUnitAiMatch]);
 
   const handleAiRecommend = (text: string) => {
     const q = text.toLowerCase().trim();

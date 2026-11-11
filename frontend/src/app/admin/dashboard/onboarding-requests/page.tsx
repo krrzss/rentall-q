@@ -373,7 +373,7 @@ export default function OnboardingRequestsPage() {
                 <XCircle className="h-6 w-6 text-rose-600" />
               </div>
               <h3 className="text-base font-bold text-navy-900 font-serif">Reject Application?</h3>
-              <p className="text-xs text-stone-500 mt-1">"{rejectTarget.companyName}" will be notified with the reason below.</p>
+              <p className="text-xs text-stone-500 mt-1">&quot;{rejectTarget.companyName}&quot; will be notified with the reason below.</p>
             </div>
             <div>
               <label className="block text-xs font-semibold text-stone-600 mb-1.5">Rejection Reason *</label>

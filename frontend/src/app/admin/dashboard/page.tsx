@@ -719,7 +719,7 @@ export default function AdminBusinessesPage() {
             </div>
             <h3 className="text-base font-bold text-navy-900 font-serif">Remove Business Permanently?</h3>
             <p className="text-xs text-stone-500">
-              This action is <strong>irreversible</strong>. "{removeTarget.name}" and all associated data will be permanently deleted.
+              This action is <strong>irreversible</strong>. &quot;{removeTarget.name}&quot; and all associated data will be permanently deleted.
             </p>
             <div className="flex gap-3">
               <Button
